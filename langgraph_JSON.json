@@ -1,0 +1,7 @@
+{
+  "task": "Write a python script that fetches the current weather from a public API.",
+  "target_file": "weather_fetcher.py",
+  "iteration": 0,
+  "input_tokens": 0,
+  "output_tokens": 0
+}
