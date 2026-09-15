@@ -1,10 +1,9 @@
 # Agent-MK
-<img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/6e901520-ac28-438b-90ea-762f413b1c06" />
-
 **Agent-MK is a local AI software-engineering assistant for Windows.**
 
 It combines a native **WinUI 3 desktop interface** with a **Python-based agent runtime** and local LLM backends such as **Ollama**. The goal is not just to provide a chat window, but to give a local model access to a real project workspace where it can inspect files, search code, make changes, and validate its work.
 
+<img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/6e901520-ac28-438b-90ea-762f413b1c06" />
 ---
 
 ## What Agent-MK Does
