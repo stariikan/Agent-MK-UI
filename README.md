@@ -1,4 +1,5 @@
 # Agent-MK
+<img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/6e901520-ac28-438b-90ea-762f413b1c06" />
 
 **Agent-MK is a local AI software-engineering assistant for Windows.**
 
@@ -223,6 +224,7 @@ The setup flow checks:
 * downloaded models
 * hardware information
 * recommended model configuration
+<img width="1410" height="731" alt="image" src="https://github.com/user-attachments/assets/1aaac5e5-fdb1-4da6-98de-1ffae0091228" />
 
 ## The application stores setup state separately from chat history so the environment can be repaired without losing the chat database.
 
@@ -298,6 +300,7 @@ Protect the workspace, restrict commands, maintain backups, and record agent act
 ### Model-aware behavior
 
 Different local models have different capabilities. Agent-MK should adapt to the model rather than treating a small 7B coding model and a large model identically.
+<img width="1911" height="726" alt="image" src="https://github.com/user-attachments/assets/fb3141de-c6f0-41d7-96d9-8685018ade83" />
 
 ---
 
@@ -353,14 +356,4 @@ Agent-MK is aiming for:
 The goal is to make a local model behave more like a **software-engineering agent** than a simple chatbot.
 
 
-## Contributions
-
-Contributions, bug reports, experiments, and ideas are welcome.
-
-Because the project is still evolving, architectural changes should prioritize:
-
-* preserving the local-first design
-* keeping workspace operations safe
-* avoiding unnecessary coupling
-* maintaining compatibility between the C# UI and Python runtime
-* keeping the agent runtime modular
+## Bug reports, experiments, and ideas are welcome.
