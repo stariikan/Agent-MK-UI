@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Agent-MK-UI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Agent-MK-UI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

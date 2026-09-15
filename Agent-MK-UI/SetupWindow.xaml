@@ -1,0 +1,116 @@
+<Window
+    x:Class="Agent_MK_UI.SetupWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <!-- Master scrollable content -->
+            <RowDefinition Height="Auto" />
+            <!-- Pinned footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Master Scrollable Body -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="24,24,24,0">
+            <StackPanel Spacing="16" Margin="0,0,0,16">
+
+                <!-- Title -->
+                <StackPanel Spacing="4">
+                    <TextBlock x:Name="SetupTitleText" Text="Setting up Agent-MK" Style="{ThemeResource TitleTextBlockStyle}" />
+                    <TextBlock x:Name="SetupSubtitleText" Text="We scan what's already on your machine first, then only install what's missing."
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- System scan checklist -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="System scan" FontWeight="SemiBold" />
+                        <StackPanel x:Name="ScanChecklistPanel" Spacing="4" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Hardware / recommendation panel -->
+                <Border x:Name="HardwarePanelBorder" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Hardware &amp; recommendation" FontWeight="SemiBold" />
+                        <TextBlock x:Name="HardwareSummaryText" Text="Detecting..." TextWrapping="Wrap" />
+                        <TextBlock x:Name="RecommendationReasonText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="RecommendationNotesText" Foreground="{ThemeResource SystemFillColorCautionBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Model Selection (Combined UX) -->
+                <Border x:Name="ModelSelectionBorder" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="12">
+
+                        <!-- Header & Library Link -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Model Selection" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <HyperlinkButton Grid.Column="1" Content="Browse full library (ollama.com)" NavigateUri="https://ollama.com/library" />
+                        </Grid>
+
+                        <TextBlock Text="Roughly: 1-3B = fast/light, 7-9B = good general baseline, 13-16B = stronger reasoning, 30B+ = best quality if your hardware can take it."
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="12" />
+
+                        <!-- Interactive Model Choice -->
+                        <Grid x:Name="ModelChoiceGrid" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Model to install:" VerticalAlignment="Center" />
+
+                            <!-- ARCHITECTURAL FIX: Wired up SelectionChanged and TextSubmitted events to drive the dynamic info UI -->
+                            <ComboBox x:Name="ModelComboBox" Grid.Column="1" IsEditable="True" HorizontalAlignment="Stretch" 
+              SelectionChanged="ModelComboBox_SelectionChanged" 
+              TextSubmitted="ModelComboBox_TextSubmitted" />
+                        </Grid>
+
+                        <!-- Dynamic Explanation / Typo Warning Box -->
+                        <TextBlock x:Name="ModelExplanationText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="12" Visibility="Collapsed" />
+
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 2. Pinned Footer -->
+        <Grid Grid.Row="1" Padding="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="140" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Log Console -->
+            <Border Grid.Row="0" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,16">
+                <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto" Padding="12">
+                    <TextBox x:Name="LogTextBox" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                             Background="Transparent" BorderThickness="0"
+                             FontFamily="Consolas" />
+                </ScrollViewer>
+            </Border>
+
+            <!-- Progress -->
+            <ProgressBar x:Name="SetupProgressBar" Grid.Row="1" Height="6" Margin="0,0,0,16" Minimum="0" Maximum="4" Value="0" />
+
+            <!-- Actions -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="16">
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                <Button x:Name="StartButton" Content="Start Setup" Width="120" Style="{ThemeResource AccentButtonStyle}" Click="StartButton_Click" />
+                <Button x:Name="ContinueButton" Content="Continue to Chat" Width="150" IsEnabled="False" Click="ContinueButton_Click" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
