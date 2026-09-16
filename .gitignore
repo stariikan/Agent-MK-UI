@@ -1,0 +1,63 @@
+# =========================
+# Agent-MK Specifics
+# =========================
+# Local agent workspaces, audit logs, and SQLite databases
+.local_agent/
+.agent_backups/
+.agent_tmp_*
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+audit.log
+
+# =========================
+# Visual Studio / IDEs
+# =========================
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.slnx.user
+
+# =========================
+# C# / .NET 8 / WinUI 3
+# =========================
+bin/
+obj/
+TestResults/
+AppPackages/
+BundleArtifacts/
+Generated\ Files/
+
+# =========================
+# Python AI Runtime
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Packaging / Distribution
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+# Miscellaneous
+# =========================
+# Node (Referenced in config ignored directories)
+node_modules/
+
+# Environment Variables
+.env
+.env.local
