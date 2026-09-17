@@ -7,12 +7,6 @@ using Orchestra.Core.Contracts;
 
 namespace Orchestra.Core.Services
 {
-    /// <summary>
-    /// Ensures a usable Python 3.10+ interpreter exists, then creates a
-    /// dedicated virtual environment under AI_Runtime\.venv and installs
-    /// the packages the agent runtime needs. Everything is idempotent: if
-    /// the venv already has the right interpreter, steps are skipped.
-    /// </summary>
     public class PythonEnvironmentManager
     {
         private readonly IAgentLogger _logger;
@@ -26,11 +20,6 @@ namespace Orchestra.Core.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Finds a system Python 3.10+ on PATH (tries "py", "python", "python3"
-        /// in that order, since the Windows launcher "py" is the most reliable
-        /// way to find a real install rather than the Microsoft Store stub).
-        /// </summary>
         public string? FindSystemPython()
         {
             foreach (var candidate in new[] { "py", "python", "python3" })
@@ -94,12 +83,10 @@ namespace Orchestra.Core.Services
 
             progress.Report("Installing the latest Python via winget (this can take a minute)...");
 
-            // ARCHITECTURAL FIX:
-            // Changed '--id Python.Python.3.12' to '--id Python.Python'.
-            // This instructs winget to pull the highest non-prerelease version available.
+            // UPDATED: Fixed winget APPINSTALLER_CLI_ERROR_NO_APPLICABLE_INSTALLER
             var result = await ProcessRunner.RunAsync(
                 "winget",
-                "install -e --id Python.Python --silent --accept-package-agreements --accept-source-agreements",
+                "install -e --id Python.Python.3.12 --silent --accept-package-agreements --accept-source-agreements",
                 progress,
                 timeout: TimeSpan.FromMinutes(10),
                 cancellationToken: ct
@@ -115,7 +102,6 @@ namespace Orchestra.Core.Services
             return FindSystemPython() != null;
         }
 
-        /// <summary>Runs `--version` against a known-good interpreter path and returns the raw output (used for the pre-flight scan report).</summary>
         public string? GetPythonVersionString(string pythonExe)
         {
             try
@@ -149,13 +135,11 @@ namespace Orchestra.Core.Services
         public string GetVenvPythonPath(string venvRootDir) =>
             Path.Combine(venvRootDir, ".venv", "Scripts", "python.exe");
 
-        // --- ARCHITECTURAL FIX: Strong Validation ---
         public bool VenvExists(string venvRootDir)
         {
             string exePath = GetVenvPythonPath(venvRootDir);
             string cfgPath = Path.Combine(venvRootDir, ".venv", "pyvenv.cfg");
 
-            // Environment is only valid if BOTH the executable and the configuration map exist
             return File.Exists(exePath) && File.Exists(cfgPath);
         }
 
@@ -176,9 +160,6 @@ namespace Orchestra.Core.Services
                 return true;
             }
 
-            // --- ARCHITECTURAL FIX: State Healing ---
-            // If the folder exists but VenvExists() is false, the environment is corrupted/zombied.
-            // We must forcibly delete it before asking the Python CLI to build a new one.
             if (Directory.Exists(venvDir))
             {
                 progress.Report("Found corrupted virtual environment. Cleaning up...");
@@ -216,7 +197,6 @@ namespace Orchestra.Core.Services
             return true;
         }
 
-        /// <summary>Quick check for the pre-flight scan: does the venv already have the required packages, without re-running pip.</summary>
         public bool AreDependenciesInstalled(string venvRootDir)
         {
             string venvPython = GetVenvPythonPath(venvRootDir);
@@ -247,12 +227,6 @@ namespace Orchestra.Core.Services
             }
         }
 
-        /// <summary>
-        /// requirementsFilePath is passed explicitly (rather than derived
-        /// from venvRootDir) because the venv now lives in a stable
-        /// AppData location, separate from AI_Runtime's script/requirements
-        /// folder under the build output -- see SetupOrchestrator.
-        /// </summary>
         public async Task<bool> InstallDependenciesAsync(
             string venvRootDir,
             string requirementsFilePath,

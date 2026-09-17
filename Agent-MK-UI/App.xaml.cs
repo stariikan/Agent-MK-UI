@@ -23,9 +23,11 @@ namespace Agent_MK_UI
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            // Top-level safety net to catch any silent CLR crash during startup
             try
             {
+                // Unpack the embedded Python files immediately so setup and engine can use them
+                DeployRuntimeToAppData();
+
                 var serviceCollection = new ServiceCollection();
                 ConfigureServices(serviceCollection);
                 Services = serviceCollection.BuildServiceProvider();
@@ -75,21 +77,18 @@ namespace Agent_MK_UI
             }
             catch (Exception ex)
             {
-                // If a fatal crash occurs before any window opens, force-log it
                 System.Diagnostics.Debug.WriteLine($"FATAL BOOT EXCEPTION: {ex}");
-                throw; // Re-throw to inspect in debugger if attached
+                throw;
             }
         }
 
-        private string DeployRuntimeToAppData()
+        public static string DeployRuntimeToAppData()
         {
-            // Extract the embedded Python files into %LOCALAPPDATA%\AgentMK\AI_Runtime
             string localAppData = Environment.GetFolderPath(
                 Environment.SpecialFolder.LocalApplicationData
             );
             string runtimeDir = Path.Combine(localAppData, "AgentMK", "AI_Runtime");
 
-            // If headless.py is missing, extract the whole payload from the embedded zip
             if (!File.Exists(Path.Combine(runtimeDir, "headless.py")))
             {
                 if (Directory.Exists(runtimeDir))
@@ -122,7 +121,7 @@ namespace Agent_MK_UI
             {
                 logger.LogInfo("Bootstrapping system: Launching Python Engine...");
 
-                // Deploy/Verify the files in AppData before trying to launch
+                // Get the AppData path (already extracted during boot)
                 string runtimeDir = DeployRuntimeToAppData();
                 string scriptPath = Path.Combine(runtimeDir, "headless.py");
                 logger.LogInfo($"[Engine] Expected script path: {scriptPath}");
@@ -131,7 +130,6 @@ namespace Agent_MK_UI
                 string? pythonExe = state.VenvPythonPath;
                 logger.LogInfo($"[Engine] Configured venv python path: {pythonExe ?? "(null)"}");
 
-                // Validate venv directory and pyvenv.cfg existence
                 string? venvDir = !string.IsNullOrEmpty(pythonExe)
                     ? Path.GetDirectoryName(Path.GetDirectoryName(pythonExe))
                     : null;
@@ -159,7 +157,6 @@ namespace Agent_MK_UI
                 logger.LogInfo("[Engine] Calling pythonEngine.StartProcess...");
                 pythonEngine.StartProcess(pythonExe, scriptPath);
 
-                // Give the OS a tiny fraction of a second to surface immediate startup crashes
                 Thread.Sleep(200);
 
                 bool isRunning = pythonEngine.IsRunning;

@@ -8,14 +8,6 @@ using Orchestra.Core.Models;
 
 namespace Orchestra.Core.Services
 {
-    /// <summary>
-    /// Coordinates the whole first-run setup flow for the in-app setup
-    /// wizard (SetupWindow): Python environment, hardware detection +
-    /// model recommendation, Ollama install/start, and model pull.
-    /// Each phase is a separate method so the UI can show the hardware
-    /// recommendation and let the user accept/override the model before
-    /// the (potentially large) model download starts.
-    /// </summary>
     public class SetupOrchestrator
     {
         private readonly IAgentLogger _logger;
@@ -26,19 +18,6 @@ namespace Orchestra.Core.Services
         private readonly SetupStateStore _stateStore;
 
         public string AiRuntimeDir { get; }
-
-        /// <summary>
-        /// Stable location for the Python venv, deliberately OUTSIDE
-        /// AiRuntimeDir. AiRuntimeDir lives under the build output
-        /// (bin\Debug\...) and gets wiped by any `dotnet clean`/rebuild --
-        /// putting the venv there meant a rebuild silently destroyed a
-        /// working Python environment while the persisted setup state in
-        /// %LOCALAPPDATA% still claimed setup was complete, pointing at a
-        /// now-deleted interpreter. That's what caused the reported crash
-        /// ("Configured Python interpreter not found ... Python process is
-        /// not running"). The venv now survives rebuilds; only the
-        /// (cheap-to-recreate) scripts in AiRuntimeDir get wiped.
-        /// </summary>
         public string VenvRootDir { get; }
 
         public SetupOrchestrator(
@@ -51,29 +30,23 @@ namespace Orchestra.Core.Services
         )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _hardwareDetector =
-                hardwareDetector ?? throw new ArgumentNullException(nameof(hardwareDetector));
-            _modelRecommender =
-                modelRecommender ?? throw new ArgumentNullException(nameof(modelRecommender));
-            _pythonManager =
-                pythonManager ?? throw new ArgumentNullException(nameof(pythonManager));
-            _ollamaManager =
-                ollamaManager ?? throw new ArgumentNullException(nameof(ollamaManager));
+            _hardwareDetector = hardwareDetector ?? throw new ArgumentNullException(nameof(hardwareDetector));
+            _modelRecommender = modelRecommender ?? throw new ArgumentNullException(nameof(modelRecommender));
+            _pythonManager = pythonManager ?? throw new ArgumentNullException(nameof(pythonManager));
+            _ollamaManager = ollamaManager ?? throw new ArgumentNullException(nameof(ollamaManager));
             _stateStore = stateStore ?? throw new ArgumentNullException(nameof(stateStore));
 
-            AiRuntimeDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AI_Runtime");
-            VenvRootDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AgentMK",
-                "venv"
-            );
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+            // UPDATED: Both paths now safely target the AppData extraction directories
+            AiRuntimeDir = Path.Combine(localAppData, "AgentMK", "AI_Runtime");
+            VenvRootDir = Path.Combine(localAppData, "AgentMK", "venv");
         }
 
         public bool IsSetupComplete() => _stateStore.IsSetupComplete();
 
         public SetupState LoadState() => _stateStore.Load();
 
-        /// <summary>Hardware detection is cheap and synchronous-ish; run it off the calling thread anyway to keep the UI responsive.</summary>
         public Task<ModelRecommendation> DetectHardwareAndRecommendAsync(
             double? overrideRamGb = null,
             double? overrideVramGb = null
@@ -86,19 +59,12 @@ namespace Orchestra.Core.Services
             });
         }
 
-        /// <summary>Synchronous wrapper so the UI can re-derive a recommendation from a hardware profile it already has (e.g. from ScanSystemAsync) without detecting hardware twice.</summary>
         public ModelRecommendation GetRecommendation(
             HardwareProfile hardware,
             double? overrideRamGb = null,
             double? overrideVramGb = null
         ) => _modelRecommender.Recommend(hardware, overrideRamGb, overrideVramGb);
 
-        /// <summary>
-        /// Pre-flight check: looks at what's already on the machine
-        /// *before* touching anything, so the wizard can tell the user
-        /// what it actually needs to do instead of just running every
-        /// install step blind. Safe to call repeatedly (read-only).
-        /// </summary>
         public async Task<SystemScanResult> ScanSystemAsync(CancellationToken ct = default)
         {
             var result = new SystemScanResult
@@ -246,7 +212,6 @@ namespace Orchestra.Core.Services
             return true;
         }
 
-        /// <summary>Switch the active model without re-running the rest of setup (used later from within the app, not just first-run).</summary>
         public void SetChosenModel(string modelTag)
         {
             var state = _stateStore.Load();
@@ -254,7 +219,6 @@ namespace Orchestra.Core.Services
             _stateStore.Save(state);
         }
 
-        /// <summary>Persist the user-selected agent behavior preset.</summary>
         public void SetAgentProfile(string profile)
         {
             profile = (profile ?? "auto").Trim().ToLowerInvariant();
@@ -268,14 +232,6 @@ namespace Orchestra.Core.Services
             _stateStore.Save(state);
         }
 
-        /// <summary>
-        /// Used by the Settings window's "Reset environment" action.
-        /// Deletes the Python venv and clears saved setup state so the
-        /// wizard runs again on next launch. Deliberately does NOT touch
-        /// Ollama or any pulled models -- those are managed separately
-        /// (see OllamaManager.DeleteModelAsync) since a user may still
-        /// want them for other tools.
-        /// </summary>
         public void ResetEnvironment()
         {
             string venvDir = Path.Combine(VenvRootDir, ".venv");
@@ -287,14 +243,6 @@ namespace Orchestra.Core.Services
             _stateStore.Reset();
         }
 
-        /// <summary>
-        /// The comprehensive teardown: deletes every locally-pulled Ollama
-        /// model, then does everything ResetEnvironment does (venv + saved
-        /// state). Deliberately does NOT touch chat history/projects
-        /// (chats.sqlite3) -- that's user data, not "setup". Ollama itself
-        /// also isn't uninstalled (no safe way to do that from here); this
-        /// clears everything the setup wizard put in place.
-        /// </summary>
         public async Task WipeEverythingAsync(
             IProgress<string> progress,
             CancellationToken ct = default

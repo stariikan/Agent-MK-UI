@@ -41,12 +41,25 @@ namespace Orchestra.Core.Services
                 {
                     FileName = pythonExecutablePath,
                     Arguments = $"\"{scriptPath}\"",
+
+                    // CRITICAL FIX: Ensure Python executes inside the AppData AI_Runtime folder
+                    WorkingDirectory = Path.GetDirectoryName(scriptPath),
+
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
+
+                    // CRITICAL FIX: Force UTF-8 encoding so JSON IPC doesn't crash on emojis/special characters
+                    StandardInputEncoding = System.Text.Encoding.UTF8,
+                    StandardOutputEncoding = System.Text.Encoding.UTF8,
+                    StandardErrorEncoding = System.Text.Encoding.UTF8,
+
                     UseShellExecute = false,
                     CreateNoWindow = true,
                 };
+
+                // Force Python to treat all standard I/O as UTF-8
+                startInfo.EnvironmentVariables["PYTHONUTF8"] = "1";
 
                 _pythonProcess = new Process { StartInfo = startInfo };
                 _pythonProcess.Start();
