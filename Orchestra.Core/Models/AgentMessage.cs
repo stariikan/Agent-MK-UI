@@ -160,10 +160,7 @@ namespace Orchestra.Core.Models
         [JsonPropertyName("remembered_message_count")]
         public int RememberedMessageCount { get; set; }
 
-        public double UsedFraction => MaxTokensModel > 0
-            ? Math.Min(1.0, (double)UsedTokensEstimate / MaxTokensModel)
-            : 0.0;
+        public double UsedFraction =>
+            MaxTokensModel > 0 ? Math.Min(1.0, (double)UsedTokensEstimate / MaxTokensModel) : 0.0;
     }
 }
-
-

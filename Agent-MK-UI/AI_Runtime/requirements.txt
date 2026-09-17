@@ -1,0 +1,12 @@
+# Core (used today by hardware_detect.py / assistant.py)
+psutil>=5.9
+
+# Multi-provider AI backend (used by the next build stage: model switching +
+# API keys for hosted providers). Installed now so the environment is ready
+# without a second pip pass later.
+openai>=1.40
+anthropic>=0.34
+google-generativeai>=0.8
+
+# Nice-to-have: colored/log-friendly console output in headless.py
+rich>=13.7

@@ -7,130 +7,147 @@
     mc:Ignorable="d">
 
     <!-- The overlay background ensures the chat beneath is hidden and non-clickable -->
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+            <StackPanel Spacing="16" MaxWidth="900" HorizontalAlignment="Stretch">
 
-        <!-- HEADER: Back button and Title -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <Button x:Name="BackButton" Grid.Column="0" Click="BackButton_Click" Margin="0,0,16,0">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE72B;" FontSize="14" />
-                    <TextBlock Text="Back to Chat" />
-                </StackPanel>
-            </Button>
-
-            <TextBlock Grid.Column="1" Text="Settings" Style="{ThemeResource TitleTextBlockStyle}" VerticalAlignment="Center" />
-        </Grid>
-
-        <!-- Active model -->
-        <Border Grid.Row="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16" Margin="0,0,0,16">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Active model" FontWeight="SemiBold" />
-                <Grid ColumnSpacing="12">
+                <!-- HEADER: Back button and Title -->
+                <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <ComboBox x:Name="InstalledModelsComboBox" Grid.Column="0" IsEditable="False" HorizontalAlignment="Stretch" />
-                    <Button x:Name="SetActiveButton" Grid.Column="1" Content="Set Active" Width="110" Style="{ThemeResource AccentButtonStyle}" Click="SetActiveButton_Click" />
+                    <Button x:Name="BackButton" Grid.Column="0" Click="BackButton_Click" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE72B;" FontSize="14" />
+                            <TextBlock Text="Back to Chat" />
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Grid.Column="1" Text="Settings" Style="{ThemeResource TitleTextBlockStyle}" VerticalAlignment="Center" />
                 </Grid>
-                <TextBlock x:Name="ActiveModelText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                <!-- Active model -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Active model" FontWeight="SemiBold" />
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox x:Name="InstalledModelsComboBox" Grid.Column="0" IsEditable="False" HorizontalAlignment="Stretch" />
+                            <Button x:Name="SetActiveButton" Grid.Column="1" Content="Set Active" Width="110" Style="{ThemeResource AccentButtonStyle}" Click="SetActiveButton_Click" />
+                        </Grid>
+                        <TextBlock x:Name="ActiveModelText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Agent behavior -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Agent behavior" FontWeight="SemiBold" />
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="AgentProfileComboBox" Grid.Column="0" HorizontalAlignment="Stretch" />
+                            <Button x:Name="SetAgentProfileButton" Grid.Column="1" Content="Apply" Width="110" Style="{ThemeResource AccentButtonStyle}" Click="SetAgentProfileButton_Click" />
+                        </Grid>
+                        <TextBlock Text="Automatic is recommended: models up to 14B use a lighter workflow, while larger models get more inspection and verification steps. Fast and Deep override that selection." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="12" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Install new model -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Install a new model" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <HyperlinkButton Grid.Column="1" Content="Browse full library (ollama.com)" NavigateUri="https://ollama.com/library" Margin="0,-6,0,-6" />
+                        </Grid>
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox x:Name="NewModelComboBox" Grid.Column="0" IsEditable="True" HorizontalAlignment="Stretch" SelectionChanged="NewModelComboBox_SelectionChanged" />
+                            <Button x:Name="PullButton" Grid.Column="1" Content="Pull" Width="110" Style="{ThemeResource AccentButtonStyle}" Click="PullButton_Click" />
+                        </Grid>
+
+                        <TextBlock x:Name="NewModelExplanationText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="12" Visibility="Collapsed" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Danger zone -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="⚠️ Danger zone" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Delete a downloaded model." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <Button x:Name="DeleteModelButton" Grid.Column="1" Content="Delete Selected Model" Click="DeleteModelButton_Click" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Reset the app's Python environment only (does not touch Ollama or your models)." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <Button x:Name="ResetEnvironmentButton" Grid.Column="1" Content="Reset Environment" Click="ResetEnvironmentButton_Click" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Delete everything the setup wizard created. Chat history is kept." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <Button x:Name="WipeEverythingButton" Grid.Column="1" Content="Delete Everything" Click="WipeEverythingButton_Click" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Progress Bar -->
+                <ProgressBar x:Name="SettingsProgressBar" Height="6" IsIndeterminate="False" Value="0" />
+
+                <!-- App Data Location -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="App Data &amp; Logs Location" FontWeight="SemiBold" />
+                            <TextBlock x:Name="AppDataPathText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="11" IsTextSelectionEnabled="True" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Open Folder" Click="OpenAppDataFolder_Click" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Log -->
+                <Border Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Height="200">
+                    <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto" Padding="12">
+                        <TextBox x:Name="LogTextBox" IsReadOnly="True" TextWrapping="Wrap"
+                                 Background="Transparent" BorderThickness="0"
+                                 FontFamily="Consolas" />
+                    </ScrollViewer>
+                </Border>
+
             </StackPanel>
-        </Border>
-
-        <!-- Agent behavior -->
-        <Border Grid.Row="2" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16" Margin="0,0,0,16">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Agent behavior" FontWeight="SemiBold" />
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ComboBox x:Name="AgentProfileComboBox" Grid.Column="0" HorizontalAlignment="Stretch" />
-                    <Button x:Name="SetAgentProfileButton" Grid.Column="1" Content="Apply" Width="110" Style="{ThemeResource AccentButtonStyle}" Click="SetAgentProfileButton_Click" />
-                </Grid>
-                <TextBlock Text="Automatic is recommended: models up to 14B use a lighter workflow, while larger models get more inspection and verification steps. Fast and Deep override that selection." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="12" />
-            </StackPanel>
-        </Border>
-
-        <!-- Install new model -->
-        <Border Grid.Row="3" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16" Margin="0,0,0,16">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Install a new model" FontWeight="SemiBold" />
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <ComboBox x:Name="NewModelComboBox" Grid.Column="0" IsEditable="True" HorizontalAlignment="Stretch" SelectionChanged="NewModelComboBox_SelectionChanged" />
-                    <Button x:Name="PullButton" Grid.Column="1" Content="Pull" Width="110" Style="{ThemeResource AccentButtonStyle}" Click="PullButton_Click" />
-                </Grid>
-
-                <TextBlock x:Name="NewModelExplanationText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" FontSize="12" Visibility="Collapsed" />
-            </StackPanel>
-        </Border>
-
-        <!-- Danger zone -->
-        <Border Grid.Row="4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="16" Margin="0,0,0,16">
-            <StackPanel Spacing="12">
-                <TextBlock Text="⚠️ Danger zone" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Delete a downloaded model." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
-                    <Button x:Name="DeleteModelButton" Grid.Column="1" Content="Delete Selected Model" Click="DeleteModelButton_Click" />
-                </Grid>
-
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Reset the app's Python environment only (does not touch Ollama or your models)." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
-                    <Button x:Name="ResetEnvironmentButton" Grid.Column="1" Content="Reset Environment" Click="ResetEnvironmentButton_Click" />
-                </Grid>
-
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Delete everything the setup wizard created. Chat history is kept." Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
-                    <Button x:Name="WipeEverythingButton" Grid.Column="1" Content="Delete Everything" Click="WipeEverythingButton_Click" />
-                </Grid>
-            </StackPanel>
-        </Border>
-
-        <!-- Progress Bar (From our previous fix) -->
-        <ProgressBar x:Name="SettingsProgressBar" Grid.Row="5" Height="6" Margin="0,0,0,16" IsIndeterminate="False" Value="0" />
-
-        <!-- Log -->
-        <Border Grid.Row="6" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4">
-            <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto" Padding="12">
-                <TextBox x:Name="LogTextBox" IsReadOnly="True" TextWrapping="Wrap"
-                         Background="Transparent" BorderThickness="0"
-                         FontFamily="Consolas" />
-            </ScrollViewer>
-        </Border>
+        </ScrollViewer>
     </Grid>
 </UserControl>
-

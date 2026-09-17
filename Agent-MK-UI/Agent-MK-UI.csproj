@@ -5,8 +5,9 @@
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 		<RootNamespace>Agent_MK_UI</RootNamespace>
 		<Nullable>enable</Nullable>
+		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ImplicitUsings>enable</ImplicitUsings>
-
 		<!-- WinUI 3 & Architecture Directives -->
 		<Platforms>x64</Platforms>
 		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
@@ -14,7 +15,6 @@
 		<EnableMsixTooling>true</EnableMsixTooling>
 		<WindowsPackageType>None</WindowsPackageType>
 		<AppxPackage>false</AppxPackage>
-
 		<!-- Self-Contained Native Bundling (Resolves 0x80670016) -->
 		<SelfContained>true</SelfContained>
 		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
@@ -22,36 +22,112 @@
 		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 		<PublishReadyToRun>True</PublishReadyToRun>
 		<PublishTrimmed>False</PublishTrimmed>
-	</PropertyGroup>
 
+		<!-- ADDED: Forces the single-file packaging on publish -->
+		<PublishSingleFile>true</PublishSingleFile>
+	</PropertyGroup>
 	<ItemGroup>
-		<!-- Upgraded to match your stable ISTQBEmulator package baseline -->
+		<None Remove="AI_Runtime\agent_core\actions.py" />
+		<None Remove="AI_Runtime\agent_core\agent.py" />
+		<None Remove="AI_Runtime\agent_core\cli.py" />
+		<None Remove="AI_Runtime\agent_core\config.py" />
+		<None Remove="AI_Runtime\agent_core\context.py" />
+		<None Remove="AI_Runtime\agent_core\database.py" />
+		<None Remove="AI_Runtime\agent_core\logging_setup.py" />
+		<None Remove="AI_Runtime\agent_core\model_client.py" />
+		<None Remove="AI_Runtime\agent_core\tools.py" />
+		<None Remove="AI_Runtime\agent_core\workspace.py" />
+		<None Remove="AI_Runtime\agent_core\__init__.py" />
+		<None Remove="AI_Runtime\assistant.py" />
+		<None Remove="AI_Runtime\chat_store.py" />
+		<None Remove="AI_Runtime\headless.py" />
+		<None Remove="AI_Runtime\requirements.txt" />
+		<None Remove="icon.ico" />
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="AI_Runtime\agent_core\actions.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\agent.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\cli.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\config.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\context.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\database.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\logging_setup.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\model_client.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\tools.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\workspace.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\agent_core\__init__.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\assistant.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\chat_store.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\headless.py">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="AI_Runtime\requirements.txt">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="icon.ico">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
+	<ItemGroup>
+		<!-- Upgraded to match your stable package baseline -->
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
 		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\Orchestra.Core\Orchestra.Core.csproj" />
 		<ProjectReference Include="..\Orchestra.Infrastructure\Orchestra.Infrastructure.csproj" />
 	</ItemGroup>
-
 	<!-- Python Runtime Assets -->
 	<ItemGroup>
-		<None Update="AI_Runtime\assistant.py">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="AI_Runtime\headless.py">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="AI_Runtime\chat_store.py">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 		<None Update="AI_Runtime\agent_core\**\*.py">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="AI_Runtime\requirements.txt">
+		<Content Include="AI_Runtime\requirements.txt">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="icon.ico">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<!-- ADDED: Zips the Python directory and embeds it for AppData deployment -->
+	<Target Name="ZipPythonRuntime" BeforeTargets="BeforeBuild">
+		<MakeDir Directories="obj" />
+		<ZipDirectory SourceDirectory="AI_Runtime" DestinationFile="obj\AIRuntime.zip" Overwrite="true" />
+	</Target>
+	<ItemGroup>
+		<EmbeddedResource Include="obj\AIRuntime.zip" LogicalName="AIRuntime.zip" />
+	</ItemGroup>
+	<ItemGroup>
+		<Manifest Include="$(ApplicationManifest)" />
 	</ItemGroup>
 </Project>

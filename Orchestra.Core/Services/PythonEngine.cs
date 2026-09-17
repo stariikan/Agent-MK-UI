@@ -4,8 +4,8 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Orchestra.Core.Models;
 using Orchestra.Core.Contracts;
+using Orchestra.Core.Models;
 
 namespace Orchestra.Core.Services
 {
@@ -45,7 +45,7 @@ namespace Orchestra.Core.Services
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
                 };
 
                 _pythonProcess = new Process { StartInfo = startInfo };
@@ -86,7 +86,11 @@ namespace Orchestra.Core.Services
                 if (string.IsNullOrWhiteSpace(jsonResponse))
                 {
                     _logger.LogError("Received empty response from Python Engine.");
-                    return new AgentResponse { IsError = true, ErrorMessage = "Empty process response." };
+                    return new AgentResponse
+                    {
+                        IsError = true,
+                        ErrorMessage = "Empty process response.",
+                    };
                 }
 
                 return JsonSerializer.Deserialize<AgentResponse>(jsonResponse);
@@ -104,7 +108,8 @@ namespace Orchestra.Core.Services
 
         private async Task MonitorErrorsAsync()
         {
-            if (_pythonProcess == null) return;
+            if (_pythonProcess == null)
+                return;
 
             using var stderr = _pythonProcess.StandardError;
             while (!stderr.EndOfStream)
@@ -119,7 +124,8 @@ namespace Orchestra.Core.Services
 
         public void Dispose()
         {
-            if (_isDisposed) return;
+            if (_isDisposed)
+                return;
             _isDisposed = true;
 
             try

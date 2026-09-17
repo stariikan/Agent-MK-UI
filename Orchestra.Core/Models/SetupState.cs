@@ -36,10 +36,8 @@ namespace Orchestra.Core.Models
         /// so a partially-failed run can resume instead of starting over.
         /// </summary>
         public bool IsSetupComplete() =>
-            !string.IsNullOrWhiteSpace(VenvPythonPath) &&
-            !string.IsNullOrWhiteSpace(ChosenModel) &&
-            IsStepComplete("deps_installed");
+            !string.IsNullOrWhiteSpace(VenvPythonPath)
+            && !string.IsNullOrWhiteSpace(ChosenModel)
+            && IsStepComplete("deps_installed");
     }
 }
-
-

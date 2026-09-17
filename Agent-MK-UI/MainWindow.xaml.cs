@@ -1,10 +1,10 @@
-using Agent_MK_UI.Helpers;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Agent_MK_UI.Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
@@ -44,24 +44,23 @@ namespace Agent_MK_UI
 
         private static Brush GetThemeBrush(string key)
         {
-            if (Application.Current.Resources.TryGetValue(
-                    key,
-                    out object boxedBrush) &&
-                boxedBrush is Brush brush)
+            if (
+                Application.Current.Resources.TryGetValue(key, out object boxedBrush)
+                && boxedBrush is Brush brush
+            )
             {
                 return brush;
             }
 
-            return new SolidColorBrush(
-                Microsoft.UI.Colors.Magenta);
+            return new SolidColorBrush(Microsoft.UI.Colors.Magenta);
         }
 
         private static Style? GetThemeStyle(string key)
         {
-            if (Application.Current.Resources.TryGetValue(
-                    key,
-                    out object boxedStyle) &&
-                boxedStyle is Style style)
+            if (
+                Application.Current.Resources.TryGetValue(key, out object boxedStyle)
+                && boxedStyle is Style style
+            )
             {
                 return style;
             }
@@ -79,6 +78,12 @@ namespace Agent_MK_UI
 
             this.Title = "Agent-MK";
             this.ExtendsContentIntoTitleBar = true;
+            // Dynamically resolve the absolute path to the icon
+            string iconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "icon.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                this.AppWindow.SetIcon(iconPath);
+            }
 
             var services = ((App)Application.Current).Services;
 
@@ -98,17 +103,13 @@ namespace Agent_MK_UI
         // Window loaded
         // ------------------------------------------------------------
 
-        private async void MainWindow_Loaded(
-            object sender,
-            RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             this.SetTitleBar(AppTitleBar);
 
-            int titleBarInset =
-                this.AppWindow.TitleBar.RightInset;
+            int titleBarInset = this.AppWindow.TitleBar.RightInset;
 
-            RightPaddingColumn.Width =
-                new GridLength(titleBarInset);
+            RightPaddingColumn.Width = new GridLength(titleBarInset);
 
             UpdateProjectActionButtons();
             await RefreshChatListAsync();
@@ -121,17 +122,14 @@ namespace Agent_MK_UI
         // Dialog helper
         // ------------------------------------------------------------
 
-        private async Task<ContentDialogResult>
-            ShowMessageDialogAsync(
-                string message,
-                string title)
+        private async Task<ContentDialogResult> ShowMessageDialogAsync(string message, string title)
         {
             var dialog = new ContentDialog
             {
                 Title = title,
                 Content = message,
                 CloseButtonText = "OK",
-                XamlRoot = this.Content.XamlRoot
+                XamlRoot = this.Content.XamlRoot,
             };
 
             return await dialog.ShowAsync();
@@ -141,27 +139,21 @@ namespace Agent_MK_UI
         // User input
         // ------------------------------------------------------------
 
-        private void UserInputBox_KeyDown(
-            object sender,
-            KeyRoutedEventArgs e)
+        private void UserInputBox_KeyDown(object sender, KeyRoutedEventArgs e)
         {
-            var shiftState =
-                Microsoft.UI.Input.InputKeyboardSource
-                    .GetKeyStateForCurrentThread(
-                        VirtualKey.Shift);
+            var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(
+                VirtualKey.Shift
+            );
 
             bool isShiftDown =
-                (shiftState &
-                 Windows.UI.Core.CoreVirtualKeyStates.Down)
+                (shiftState & Windows.UI.Core.CoreVirtualKeyStates.Down)
                 == Windows.UI.Core.CoreVirtualKeyStates.Down;
 
             if (e.Key == VirtualKey.Enter && !isShiftDown)
             {
                 e.Handled = true;
 
-                SendButton_Click(
-                    sender,
-                    new RoutedEventArgs());
+                SendButton_Click(sender, new RoutedEventArgs());
             }
         }
 
@@ -176,31 +168,22 @@ namespace Agent_MK_UI
 
             try
             {
-                _chats =
-                    await _orchestrator.ListChatsAsync();
+                _chats = await _orchestrator.ListChatsAsync();
 
                 if (_chats.Count == 0)
                 {
-                    var chat =
-                        await _orchestrator.CreateChatAsync(
-                            "New chat",
-                            null);
+                    var chat = await _orchestrator.CreateChatAsync("New chat", null);
 
-                    _chats =
-                        await _orchestrator.ListChatsAsync();
+                    _chats = await _orchestrator.ListChatsAsync();
 
                     _currentChat = chat;
                 }
-                else if (
-                    _currentChat == null ||
-                    _chats.All(
-                        c => c.Id != _currentChat.Id))
+                else if (_currentChat == null || _chats.All(c => c.Id != _currentChat.Id))
                 {
                     _currentChat = _chats.First();
                 }
 
-                ChatCountText.Text =
-                    $"Chats ({_chats.Count}/30)";
+                ChatCountText.Text = $"Chats ({_chats.Count}/30)";
 
                 BuildChatListPanel();
 
@@ -211,12 +194,9 @@ namespace Agent_MK_UI
             }
             catch (AgentIpcException ex)
             {
-                _logger?.LogError(
-                    $"Failed to load chats: {ex.Message}");
+                _logger?.LogError($"Failed to load chats: {ex.Message}");
 
-                await ShowMessageDialogAsync(
-                    $"Failed to load chats: {ex.Message}",
-                    "Error");
+                await ShowMessageDialogAsync($"Failed to load chats: {ex.Message}", "Error");
             }
         }
 
@@ -226,156 +206,103 @@ namespace Agent_MK_UI
 
             foreach (var chat in _chats)
             {
-                bool isSelected =
-                    _currentChat != null &&
-                    chat.Id == _currentChat.Id;
+                bool isSelected = _currentChat != null && chat.Id == _currentChat.Id;
 
                 var row = new Border
                 {
-                    Background =
-                        isSelected
-                            ? GetThemeBrush(
-                                "SubtleFillColorSecondaryBrush")
-                            : new SolidColorBrush(
-                                Microsoft.UI.Colors.Transparent),
+                    Background = isSelected
+                        ? GetThemeBrush("SubtleFillColorSecondaryBrush")
+                        : new SolidColorBrush(Microsoft.UI.Colors.Transparent),
 
-                    CornerRadius =
-                        new CornerRadius(4),
+                    CornerRadius = new CornerRadius(4),
 
-                    Padding =
-                        new Thickness(8, 6, 8, 6),
+                    Padding = new Thickness(8, 6, 8, 6),
 
-                    Margin =
-                        new Thickness(0, 0, 0, 2)
+                    Margin = new Thickness(0, 0, 0, 2),
                 };
 
                 var grid = new Grid();
 
                 grid.ColumnDefinitions.Add(
-                    new ColumnDefinition
-                    {
-                        Width =
-                            new GridLength(
-                                1,
-                                GridUnitType.Star)
-                    });
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                );
 
-                grid.ColumnDefinitions.Add(
-                    new ColumnDefinition
-                    {
-                        Width = GridLength.Auto
-                    });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-                var textPanel =
-                    new StackPanel();
+                var textPanel = new StackPanel();
 
                 textPanel.Children.Add(
                     new TextBlock
                     {
                         Text = chat.Title,
 
-                        Foreground =
-                            GetThemeBrush(
-                                "TextFillColorPrimaryBrush"),
+                        Foreground = GetThemeBrush("TextFillColorPrimaryBrush"),
 
-                        TextTrimming =
-                            TextTrimming.CharacterEllipsis,
+                        TextTrimming = TextTrimming.CharacterEllipsis,
 
-                        FontWeight =
-                            isSelected
-                                ? Microsoft.UI.Text.FontWeights
-                                    .SemiBold
-                                : Microsoft.UI.Text.FontWeights
-                                    .Normal
-                    });
+                        FontWeight = isSelected
+                            ? Microsoft.UI.Text.FontWeights.SemiBold
+                            : Microsoft.UI.Text.FontWeights.Normal,
+                    }
+                );
 
-                if (!string.IsNullOrEmpty(
-                        chat.ProjectPath))
+                if (!string.IsNullOrEmpty(chat.ProjectPath))
                 {
                     textPanel.Children.Add(
                         new TextBlock
                         {
-                            Text =
-                                Path.GetFileName(
-                                    chat.ProjectPath.TrimEnd(
-                                        '\\',
-                                        '/')),
+                            Text = Path.GetFileName(chat.ProjectPath.TrimEnd('\\', '/')),
 
-                            Foreground =
-                                GetThemeBrush(
-                                    "AccentTextFillColorPrimaryBrush"),
+                            Foreground = GetThemeBrush("AccentTextFillColorPrimaryBrush"),
 
                             FontSize = 10,
 
-                            TextTrimming =
-                                TextTrimming.CharacterEllipsis
-                        });
+                            TextTrimming = TextTrimming.CharacterEllipsis,
+                        }
+                    );
                 }
 
-                Grid.SetColumn(
-                    textPanel,
-                    0);
+                Grid.SetColumn(textPanel, 0);
 
                 grid.Children.Add(textPanel);
 
-                var deleteButton =
-                    new Button
-                    {
-                        Content = "\u2715",
+                var deleteButton = new Button
+                {
+                    Content = "\u2715",
 
-                        Padding =
-                            new Thickness(4, 0, 0, 0),
+                    Padding = new Thickness(4, 0, 0, 0),
 
-                        VerticalAlignment =
-                            VerticalAlignment.Top,
+                    VerticalAlignment = VerticalAlignment.Top,
 
-                        Background =
-                            new SolidColorBrush(
-                                Microsoft.UI.Colors.Transparent),
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
 
-                        BorderBrush =
-                            new SolidColorBrush(
-                                Microsoft.UI.Colors.Transparent)
-                    };
+                    BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                };
 
-                deleteButton.Click +=
-                    async (_, __) =>
-                        await DeleteChatAsync(chat);
+                deleteButton.Click += async (_, __) => await DeleteChatAsync(chat);
 
-                Grid.SetColumn(
-                    deleteButton,
-                    1);
+                Grid.SetColumn(deleteButton, 1);
 
                 grid.Children.Add(deleteButton);
 
                 row.Child = grid;
 
-                row.PointerPressed +=
-                    async (_, __) =>
-                        await SelectChatAsync(chat);
+                row.PointerPressed += async (_, __) => await SelectChatAsync(chat);
 
                 if (!isSelected)
                 {
-                    row.PointerEntered +=
-                        (_, __) =>
-                            row.Background =
-                                GetThemeBrush(
-                                    "SubtleFillColorTransparentBrush");
+                    row.PointerEntered += (_, __) =>
+                        row.Background = GetThemeBrush("SubtleFillColorTransparentBrush");
 
-                    row.PointerExited +=
-                        (_, __) =>
-                            row.Background =
-                                new SolidColorBrush(
-                                    Microsoft.UI.Colors.Transparent);
+                    row.PointerExited += (_, __) =>
+                        row.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
                 }
 
                 ChatListPanel.Children.Add(row);
             }
         }
 
-        private async void NewChatButton_Click(
-    object sender,
-    RoutedEventArgs e)
+        private async void NewChatButton_Click(object sender, RoutedEventArgs e)
         {
             if (_orchestrator == null)
                 return;
@@ -384,7 +311,8 @@ namespace Agent_MK_UI
             {
                 await ShowMessageDialogAsync(
                     "Maximum of 30 chats reached. Delete one before creating a new chat.",
-                    "Chat limit reached");
+                    "Chat limit reached"
+                );
 
                 return;
             }
@@ -392,11 +320,11 @@ namespace Agent_MK_UI
             try
             {
                 // 1. Instantly create the chat using system defaults, bypassing the UI dialog.
-                var chat =
-                    await _orchestrator.CreateChatAsync(
-                        "New chat",
-                        null,
-                        _orchestrator.DefaultModel);
+                var chat = await _orchestrator.CreateChatAsync(
+                    "New chat",
+                    null,
+                    _orchestrator.DefaultModel
+                );
 
                 _currentChat = chat;
 
@@ -407,14 +335,11 @@ namespace Agent_MK_UI
             }
             catch (AgentIpcException ex)
             {
-                await ShowMessageDialogAsync(
-                    ex.Message,
-                    "Could not create chat");
+                await ShowMessageDialogAsync(ex.Message, "Could not create chat");
             }
         }
 
-        private async Task DeleteChatAsync(
-            ChatSummary chat)
+        private async Task DeleteChatAsync(ChatSummary chat)
         {
             if (_orchestrator == null)
                 return;
@@ -423,27 +348,23 @@ namespace Agent_MK_UI
             {
                 Title = "Delete chat",
 
-                Content =
-                    $"Delete chat '{chat.Title}'? This can't be undone.",
+                Content = $"Delete chat '{chat.Title}'? This can't be undone.",
 
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "No",
-                XamlRoot = this.Content.XamlRoot
+                XamlRoot = this.Content.XamlRoot,
             };
 
-            var confirm =
-                await dialog.ShowAsync();
+            var confirm = await dialog.ShowAsync();
 
-            if (confirm !=
-                ContentDialogResult.Primary)
+            if (confirm != ContentDialogResult.Primary)
             {
                 return;
             }
 
             try
             {
-                await _orchestrator.DeleteChatAsync(
-                    chat.Id);
+                await _orchestrator.DeleteChatAsync(chat.Id);
 
                 if (_currentChat?.Id == chat.Id)
                 {
@@ -454,14 +375,11 @@ namespace Agent_MK_UI
             }
             catch (AgentIpcException ex)
             {
-                await ShowMessageDialogAsync(
-                    ex.Message,
-                    "Could not delete chat");
+                await ShowMessageDialogAsync(ex.Message, "Could not delete chat");
             }
         }
 
-        private async Task SelectChatAsync(
-            ChatSummary chat)
+        private async Task SelectChatAsync(ChatSummary chat)
         {
             _currentChat = chat;
 
@@ -469,33 +387,22 @@ namespace Agent_MK_UI
 
             ChatHistoryPanel.Children.Clear();
 
-            ContextUsage? usage =
-                await RefreshContextUsageAsync();
+            ContextUsage? usage = await RefreshContextUsageAsync();
 
             if (_orchestrator != null)
             {
                 try
                 {
-                    var messages =
-                        await _orchestrator
-                            .GetMessagesAsync(chat.Id);
+                    var messages = await _orchestrator.GetMessagesAsync(chat.Id);
 
                     int boundaryIndex =
                         usage != null
-                            ? Math.Max(
-                                0,
-                                messages.Count -
-                                usage.RememberedMessageCount)
+                            ? Math.Max(0, messages.Count - usage.RememberedMessageCount)
                             : 0;
 
-                    for (
-                        int i = 0;
-                        i < messages.Count;
-                        i++)
+                    for (int i = 0; i < messages.Count; i++)
                     {
-                        if (
-                            i == boundaryIndex &&
-                            boundaryIndex > 0)
+                        if (i == boundaryIndex && boundaryIndex > 0)
                         {
                             AppendContextBoundaryDivider();
                         }
@@ -504,10 +411,7 @@ namespace Agent_MK_UI
 
                         string role = msg.Role?.Trim().ToLowerInvariant() ?? "";
 
-                        if (
-                            role == "user" ||
-                            role == "human" ||
-                            role == "user_message")
+                        if (role == "user" || role == "human" || role == "user_message")
                         {
                             AppendUserBubble(msg.Content);
                         }
@@ -515,14 +419,14 @@ namespace Agent_MK_UI
                         {
                             AppendAssistantBubble(
                                 SanitizeAssistantResponse(msg.Content),
-                                chat.ProjectPath);
+                                chat.ProjectPath
+                            );
                         }
                     }
                 }
                 catch (AgentIpcException ex)
                 {
-                    _logger?.LogError(
-                        $"Failed to load messages for chat {chat.Id}: {ex.Message}");
+                    _logger?.LogError($"Failed to load messages for chat {chat.Id}: {ex.Message}");
                 }
             }
 
@@ -531,26 +435,16 @@ namespace Agent_MK_UI
 
         private void AppendContextBoundaryDivider()
         {
-            var panel =
-                new StackPanel
-                {
-                    Orientation =
-                        Orientation.Horizontal,
+            var panel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
 
-                    Margin =
-                        new Thickness(
-                            0,
-                            10,
-                            0,
-                            10),
+                Margin = new Thickness(0, 10, 0, 10),
 
-                    HorizontalAlignment =
-                        HorizontalAlignment.Center
-                };
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
 
-            var lineColor =
-                GetThemeBrush(
-                    "CardStrokeColorDefaultBrush");
+            var lineColor = GetThemeBrush("CardStrokeColorDefaultBrush");
 
             panel.Children.Add(
                 new Border
@@ -559,29 +453,22 @@ namespace Agent_MK_UI
                     Height = 1,
                     Background = lineColor,
 
-                    VerticalAlignment =
-                        VerticalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
 
-                    Margin =
-                        new Thickness(
-                            0,
-                            0,
-                            8,
-                            0)
-                });
+                    Margin = new Thickness(0, 0, 8, 0),
+                }
+            );
 
             panel.Children.Add(
                 new TextBlock
                 {
-                    Text =
-                        "Model's memory starts here \u2193",
+                    Text = "Model's memory starts here \u2193",
 
                     FontSize = 11,
 
-                    Foreground =
-                        GetThemeBrush(
-                            "TextFillColorSecondaryBrush")
-                });
+                    Foreground = GetThemeBrush("TextFillColorSecondaryBrush"),
+                }
+            );
 
             panel.Children.Add(
                 new Border
@@ -590,16 +477,11 @@ namespace Agent_MK_UI
                     Height = 1,
                     Background = lineColor,
 
-                    VerticalAlignment =
-                        VerticalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
 
-                    Margin =
-                        new Thickness(
-                            8,
-                            0,
-                            0,
-                            0)
-                });
+                    Margin = new Thickness(8, 0, 0, 0),
+                }
+            );
 
             ChatHistoryPanel.Children.Add(panel);
         }
@@ -608,44 +490,35 @@ namespace Agent_MK_UI
         // Context usage
         // ------------------------------------------------------------
 
-        private async Task<ContextUsage?>
-            RefreshContextUsageAsync()
+        private async Task<ContextUsage?> RefreshContextUsageAsync()
         {
-            if (
-                _currentChat == null ||
-                _orchestrator == null)
+            if (_currentChat == null || _orchestrator == null)
             {
                 return null;
             }
 
             try
             {
-                var usage =
-                    await _orchestrator
-                        .GetContextUsageAsync(
-                            _currentChat.Id);
+                var usage = await _orchestrator.GetContextUsageAsync(_currentChat.Id);
 
-                ContextUsageBar.Value =
-                    usage.UsedFraction;
+                ContextUsageBar.Value = usage.UsedFraction;
 
-                string estimateNote =
-                    usage.MaxTokensIsEstimate
-                        ? " (estimated max, model unreachable)"
-                        : "";
+                string estimateNote = usage.MaxTokensIsEstimate
+                    ? " (estimated max, model unreachable)"
+                    : "";
 
                 string text =
-                    $"Context: ~{usage.UsedTokensEstimate:N0} / " +
-                    $"{usage.MaxTokensModel:N0} tokens " +
-                    $"({usage.UsedFraction:P0}){estimateNote} — " +
-                    $"agent: {usage.AgentProfile}, output cap: {usage.MaxOutputTokens:N0}; " +
-                    $"remembers the last " +
-                    $"{usage.RememberedMessageCount} of " +
-                    $"{usage.TotalStoredMessages} messages";
+                    $"Context: ~{usage.UsedTokensEstimate:N0} / "
+                    + $"{usage.MaxTokensModel:N0} tokens "
+                    + $"({usage.UsedFraction:P0}){estimateNote} — "
+                    + $"agent: {usage.AgentProfile}, output cap: {usage.MaxOutputTokens:N0}; "
+                    + $"remembers the last "
+                    + $"{usage.RememberedMessageCount} of "
+                    + $"{usage.TotalStoredMessages} messages";
 
                 if (usage.WasTrimmed)
                 {
-                    text +=
-                        " (older ones dropped to fit)";
+                    text += " (older ones dropped to fit)";
                 }
 
                 ContextUsageText.Text = text;
@@ -654,8 +527,7 @@ namespace Agent_MK_UI
             }
             catch (AgentIpcException ex)
             {
-                _logger?.LogWarning(
-                    $"Failed to load context usage: {ex.Message}");
+                _logger?.LogWarning($"Failed to load context usage: {ex.Message}");
 
                 ContextUsageText.Text = "";
                 ContextUsageBar.Value = 0;
@@ -696,12 +568,14 @@ namespace Agent_MK_UI
             catch (AgentIpcException ex)
             {
                 ProjectStatsText.Text = "Project scan failed.";
-                ProjectTreePanel.Children.Add(new TextBlock
-                {
-                    Text = $"Could not scan project: {ex.Message}",
-                    Foreground = GetThemeBrush("SystemFillColorCriticalBrush"),
-                    TextWrapping = TextWrapping.Wrap
-                });
+                ProjectTreePanel.Children.Add(
+                    new TextBlock
+                    {
+                        Text = $"Could not scan project: {ex.Message}",
+                        Foreground = GetThemeBrush("SystemFillColorCriticalBrush"),
+                        TextWrapping = TextWrapping.Wrap,
+                    }
+                );
             }
         }
 
@@ -710,7 +584,9 @@ namespace Agent_MK_UI
             bool hasProject = attached ?? !string.IsNullOrWhiteSpace(_currentChat?.ProjectPath);
 
             AttachProjectButton.Visibility = hasProject ? Visibility.Collapsed : Visibility.Visible;
-            RefreshProjectButton.Visibility = hasProject ? Visibility.Visible : Visibility.Collapsed;
+            RefreshProjectButton.Visibility = hasProject
+                ? Visibility.Visible
+                : Visibility.Collapsed;
             ReviewProjectButton.Visibility = hasProject ? Visibility.Visible : Visibility.Collapsed;
             RemoveProjectButton.Visibility = hasProject ? Visibility.Visible : Visibility.Collapsed;
 
@@ -733,76 +609,62 @@ namespace Agent_MK_UI
         private static bool IsCodeLikeFile(string path)
         {
             string ext = Path.GetExtension(path).ToLowerInvariant();
-            return ext is ".cs" or ".csproj" or ".xaml" or ".razor" or ".py" or ".js" or ".ts"
-                or ".tsx" or ".jsx" or ".json" or ".xml" or ".html" or ".css" or ".scss"
-                or ".md" or ".txt" or ".bat" or ".ps1" or ".cpp" or ".h" or ".hpp";
+            return ext
+                is ".cs"
+                    or ".csproj"
+                    or ".xaml"
+                    or ".razor"
+                    or ".py"
+                    or ".js"
+                    or ".ts"
+                    or ".tsx"
+                    or ".jsx"
+                    or ".json"
+                    or ".xml"
+                    or ".html"
+                    or ".css"
+                    or ".scss"
+                    or ".md"
+                    or ".txt"
+                    or ".bat"
+                    or ".ps1"
+                    or ".cpp"
+                    or ".h"
+                    or ".hpp";
         }
 
-        private void BuildProjectTree(
-            List<ProjectFileEntry> files)
+        private void BuildProjectTree(List<ProjectFileEntry> files)
         {
             foreach (var entry in files)
             {
-                int depth =
-                    entry.Path.Count(
-                        c => c == '/');
+                int depth = entry.Path.Count(c => c == '/');
 
-                string name =
-                    entry.Path.Contains('/')
-                        ? entry.Path[
-                            (entry.Path.LastIndexOf('/') + 1)..]
-                        : entry.Path;
+                string name = entry.Path.Contains('/')
+                    ? entry.Path[(entry.Path.LastIndexOf('/') + 1)..]
+                    : entry.Path;
 
-                var row =
-                    new Grid
-                    {
-                        Margin =
-                            new Thickness(
-                                depth * 12,
-                                1,
-                                0,
-                                1)
-                    };
+                var row = new Grid { Margin = new Thickness(depth * 12, 1, 0, 1) };
 
                 row.ColumnDefinitions.Add(
-                    new ColumnDefinition
-                    {
-                        Width =
-                            new GridLength(
-                                1,
-                                GridUnitType.Star)
-                    });
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                );
 
-                row.ColumnDefinitions.Add(
-                    new ColumnDefinition
-                    {
-                        Width = GridLength.Auto
-                    });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-                var label =
-                    new TextBlock
-                    {
-                        Text =
-                            (entry.IsDir
-                                ? "\U0001F4C1 "
-                                : "\U0001F4C4 ") +
-                            name,
+                var label = new TextBlock
+                {
+                    Text = (entry.IsDir ? "\U0001F4C1 " : "\U0001F4C4 ") + name,
 
-                        Foreground =
-                            entry.IsDir
-                                ? GetThemeBrush(
-                                    "SystemFillColorCautionBrush")
-                                : GetThemeBrush(
-                                    "TextFillColorPrimaryBrush"),
+                    Foreground = entry.IsDir
+                        ? GetThemeBrush("SystemFillColorCautionBrush")
+                        : GetThemeBrush("TextFillColorPrimaryBrush"),
 
-                        FontSize = 12,
+                    FontSize = 12,
 
-                        TextTrimming =
-                            TextTrimming.CharacterEllipsis,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
 
-                        VerticalAlignment =
-                            VerticalAlignment.Center
-                    };
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
 
                 Grid.SetColumn(label, 0);
 
@@ -810,35 +672,21 @@ namespace Agent_MK_UI
 
                 if (!entry.IsDir)
                 {
-                    var scanButton =
-                        new Button
-                        {
-                            Content = "Scan",
-                            FontSize = 10,
+                    var scanButton = new Button
+                    {
+                        Content = "Scan",
+                        FontSize = 10,
 
-                            Padding =
-                                new Thickness(
-                                    4,
-                                    1,
-                                    4,
-                                    1),
+                        Padding = new Thickness(4, 1, 4, 1),
 
-                            Style =
-                                GetThemeStyle(
-                                    "QuietButtonStyle")
-                        };
+                        Style = GetThemeStyle("QuietButtonStyle"),
+                    };
 
-                    scanButton.Click +=
-                        (_, __) =>
-                            ScanFileIntoInput(
-                                entry.Path);
+                    scanButton.Click += (_, __) => ScanFileIntoInput(entry.Path);
 
-                    Grid.SetColumn(
-                        scanButton,
-                        1);
+                    Grid.SetColumn(scanButton, 1);
 
-                    row.Children.Add(
-                        scanButton);
+                    row.Children.Add(scanButton);
                 }
 
                 ProjectTreePanel.Children.Add(row);
@@ -851,62 +699,48 @@ namespace Agent_MK_UI
                     {
                         Text = "(empty project)",
 
-                        Foreground =
-                            GetThemeBrush(
-                                "TextFillColorSecondaryBrush")
-                    });
+                        Foreground = GetThemeBrush("TextFillColorSecondaryBrush"),
+                    }
+                );
             }
         }
 
-        private void ScanFileIntoInput(
-            string relativePath)
+        private void ScanFileIntoInput(string relativePath)
         {
             if (_currentChat?.ProjectPath == null)
                 return;
 
-            string fullPath =
-                Path.Combine(
-                    _currentChat.ProjectPath,
-                    relativePath.Replace(
-                        '/',
-                        Path.DirectorySeparatorChar));
+            string fullPath = Path.Combine(
+                _currentChat.ProjectPath,
+                relativePath.Replace('/', Path.DirectorySeparatorChar)
+            );
 
-            InsertFileContentIntoInput(
-                fullPath,
-                relativePath);
+            InsertFileContentIntoInput(fullPath, relativePath);
         }
 
-        private void InsertFileContentIntoInput(
-            string fullPath,
-            string displayName)
+        private void InsertFileContentIntoInput(string fullPath, string displayName)
         {
             try
             {
-                var info =
-                    new FileInfo(fullPath);
+                var info = new FileInfo(fullPath);
 
                 if (!info.Exists)
                     return;
 
-                string content =
-                    File.ReadAllText(fullPath);
+                string content = File.ReadAllText(fullPath);
 
                 string block =
-                    $"<AGENT_MK_FILE path=\"{displayName}\">\n" +
-                    content +
-                    "\n</AGENT_MK_FILE>\n\n";
+                    $"<AGENT_MK_FILE path=\"{displayName}\">\n"
+                    + content
+                    + "\n</AGENT_MK_FILE>\n\n";
 
-                UserInputBox.Text =
-                    block +
-                    UserInputBox.Text;
+                UserInputBox.Text = block + UserInputBox.Text;
 
-                UserInputBox.Focus(
-                    FocusState.Programmatic);
+                UserInputBox.Focus(FocusState.Programmatic);
             }
             catch (Exception ex)
             {
-                _logger?.LogError(
-                    $"Could not read file: {ex.Message}");
+                _logger?.LogError($"Could not read file: {ex.Message}");
             }
         }
 
@@ -921,9 +755,9 @@ namespace Agent_MK_UI
                 return;
 
             const string reviewPrompt =
-                "Review the attached project. Start by inspecting its structure and the files relevant to my request. " +
-                "Do not ask me to paste the project into chat; use the project workspace tools to read the files you need. " +
-                "First summarize the architecture and identify the most relevant files, then proceed with the requested work.";
+                "Review the attached project. Start by inspecting its structure and the files relevant to my request. "
+                + "Do not ask me to paste the project into chat; use the project workspace tools to read the files you need. "
+                + "First summarize the architecture and identify the most relevant files, then proceed with the requested work.";
 
             UserInputBox.Text = string.IsNullOrWhiteSpace(UserInputBox.Text)
                 ? reviewPrompt
@@ -932,45 +766,32 @@ namespace Agent_MK_UI
             UserInputBox.Focus(FocusState.Programmatic);
         }
 
-        private async void AttachProjectButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private async void AttachProjectButton_Click(object sender, RoutedEventArgs e)
         {
-            if (
-                _currentChat == null ||
-                _orchestrator == null)
+            if (_currentChat == null || _orchestrator == null)
             {
                 return;
             }
 
-            var picker =
-                new FolderPicker();
+            var picker = new FolderPicker();
 
-            var hwnd =
-                WinRT.Interop.WindowNative
-                    .GetWindowHandle(this);
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            WinRT.Interop.InitializeWithWindow
-                .Initialize(
-                    picker,
-                    hwnd);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
             picker.FileTypeFilter.Add("*");
 
-            var folder =
-                await picker
-                    .PickSingleFolderAsync();
+            var folder = await picker.PickSingleFolderAsync();
 
             if (folder == null)
                 return;
 
             try
             {
-                _currentChat =
-                    await _orchestrator
-                        .SetChatProjectAsync(
-                            _currentChat.Id,
-                            folder.Path);
+                _currentChat = await _orchestrator.SetChatProjectAsync(
+                    _currentChat.Id,
+                    folder.Path
+                );
 
                 UpdateProjectActionButtons(true);
                 await RefreshProjectPanelAsync();
@@ -978,9 +799,7 @@ namespace Agent_MK_UI
             }
             catch (AgentIpcException ex)
             {
-                await ShowMessageDialogAsync(
-                    ex.Message,
-                    "Could not attach project");
+                await ShowMessageDialogAsync(ex.Message, "Could not attach project");
             }
         }
 
@@ -1005,7 +824,7 @@ namespace Agent_MK_UI
                     Content = BuildLargePromptWarning(promptText),
                     PrimaryButtonText = "Send anyway",
                     CloseButtonText = "Cancel",
-                    XamlRoot = this.Content.XamlRoot
+                    XamlRoot = this.Content.XamlRoot,
                 };
 
                 if (await decision.ShowAsync() != ContentDialogResult.Primary)
@@ -1021,7 +840,10 @@ namespace Agent_MK_UI
 
             try
             {
-                string responseText = await _orchestrator.SendChatMessageAsync(_currentChat.Id, promptText);
+                string responseText = await _orchestrator.SendChatMessageAsync(
+                    _currentChat.Id,
+                    promptText
+                );
                 responseText = SanitizeAssistantResponse(responseText);
 
                 _logger?.LogInfo($"AI response received ({responseText.Length} display chars).");
@@ -1036,7 +858,10 @@ namespace Agent_MK_UI
                     string derivedTitle = DeriveTitleFromMessage(promptText);
                     try
                     {
-                        _currentChat = await _orchestrator.RenameChatAsync(_currentChat.Id, derivedTitle);
+                        _currentChat = await _orchestrator.RenameChatAsync(
+                            _currentChat.Id,
+                            derivedTitle
+                        );
                         int idx = _chats.FindIndex(c => c.Id == _currentChat.Id);
                         if (idx >= 0)
                             _chats[idx] = _currentChat;
@@ -1052,14 +877,22 @@ namespace Agent_MK_UI
             {
                 StopThinkingAnimation();
                 ChatHistoryPanel.Children.Remove(thinkingBubble);
-                AppendAssistantBubble($"[error] {ex.Message}", _currentChat.ProjectPath, isError: true);
+                AppendAssistantBubble(
+                    $"[error] {ex.Message}",
+                    _currentChat.ProjectPath,
+                    isError: true
+                );
             }
             catch (Exception ex)
             {
                 StopThinkingAnimation();
                 ChatHistoryPanel.Children.Remove(thinkingBubble);
                 _logger?.LogError($"Unexpected send failure: {ex}");
-                AppendAssistantBubble($"[error] {ex.Message}", _currentChat.ProjectPath, isError: true);
+                AppendAssistantBubble(
+                    $"[error] {ex.Message}",
+                    _currentChat.ProjectPath,
+                    isError: true
+                );
             }
             finally
             {
@@ -1074,17 +907,17 @@ namespace Agent_MK_UI
 
         private static bool IsLargePrompt(string prompt)
         {
-            return prompt.Length >= LargePromptCharThreshold ||
-                   prompt.Count(c => c == '\n') + 1 >= LargePromptLineThreshold;
+            return prompt.Length >= LargePromptCharThreshold
+                || prompt.Count(c => c == '\n') + 1 >= LargePromptLineThreshold;
         }
 
         private static string BuildLargePromptWarning(string prompt)
         {
             int lines = prompt.Count(c => c == '\n') + 1;
             int approxTokens = Math.Max(1, prompt.Length / 4);
-            return $"This message is unusually large ({lines:N0} lines, roughly {approxTokens:N0} tokens by a simple character estimate). " +
-                   "The current runtime protects conversation history, but a single very large user message can still exceed the model's input budget. " +
-                   "For large code, attach the project and use Review/Scan on the relevant files so the model can read them through its workspace tools instead of pasting thousands of lines into chat.";
+            return $"This message is unusually large ({lines:N0} lines, roughly {approxTokens:N0} tokens by a simple character estimate). "
+                + "The current runtime protects conversation history, but a single very large user message can still exceed the model's input budget. "
+                + "For large code, attach the project and use Review/Scan on the relevant files so the model can read them through its workspace tools instead of pasting thousands of lines into chat.";
         }
 
         private static string SanitizeAssistantResponse(string text)
@@ -1093,29 +926,33 @@ namespace Agent_MK_UI
                 return string.Empty;
 
             // Reasoning should never be rendered into the chat transcript. Keep only the user-facing answer.
-            string cleaned = Regex.Replace(text, @"(?is)<(?:think|analysis|reasoning)>.*?</(?:think|analysis|reasoning)>\s*", string.Empty);
-            cleaned = Regex.Replace(cleaned, @"(?im)^\s*```(?:thinking|analysis|reasoning)\s*$.*?^\s*```\s*$", string.Empty, RegexOptions.Singleline);
+            string cleaned = Regex.Replace(
+                text,
+                @"(?is)<(?:think|analysis|reasoning)>.*?</(?:think|analysis|reasoning)>\s*",
+                string.Empty
+            );
+            cleaned = Regex.Replace(
+                cleaned,
+                @"(?im)^\s*```(?:thinking|analysis|reasoning)\s*$.*?^\s*```\s*$",
+                string.Empty,
+                RegexOptions.Singleline
+            );
 
             // Hide accidental model metadata lines, without filtering normal prose that happens to mention models.
-            cleaned = Regex.Replace(cleaned, @"(?im)^\s*(?:model|model_name|model name)\s*:\s*[A-Za-z0-9_.:/-]+\s*$\n?", string.Empty);
+            cleaned = Regex.Replace(
+                cleaned,
+                @"(?im)^\s*(?:model|model_name|model name)\s*:\s*[A-Za-z0-9_.:/-]+\s*$\n?",
+                string.Empty
+            );
 
             return cleaned.Trim();
         }
 
-        private static string DeriveTitleFromMessage(
-            string prompt)
+        private static string DeriveTitleFromMessage(string prompt)
         {
-            string flat =
-                prompt
-                    .Replace('\r', ' ')
-                    .Replace('\n', ' ')
-                    .Trim();
+            string flat = prompt.Replace('\r', ' ').Replace('\n', ' ').Trim();
 
-            var words =
-                flat.Split(
-                    ' ',
-                    StringSplitOptions
-                        .RemoveEmptyEntries);
+            var words = flat.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (words.Length == 0)
                 return "New chat";
@@ -1123,21 +960,14 @@ namespace Agent_MK_UI
             const int maxWords = 6;
             const int maxChars = 60;
 
-            string title =
-                string.Join(
-                    ' ',
-                    words.Take(maxWords));
+            string title = string.Join(' ', words.Take(maxWords));
 
             if (title.Length > maxChars)
             {
-                title =
-                    title[..maxChars]
-                        .TrimEnd();
+                title = title[..maxChars].TrimEnd();
             }
 
-            if (
-                words.Length > maxWords ||
-                title.Length < flat.Length)
+            if (words.Length > maxWords || title.Length < flat.Length)
             {
                 title += "...";
             }
@@ -1149,32 +979,21 @@ namespace Agent_MK_UI
         // File attachment
         // ------------------------------------------------------------
 
-        private async void AttachFileButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private async void AttachFileButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker =
-                new FileOpenPicker();
+            var picker = new FileOpenPicker();
 
-            var hwnd =
-                WinRT.Interop.WindowNative
-                    .GetWindowHandle(this);
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            WinRT.Interop.InitializeWithWindow
-                .Initialize(
-                    picker,
-                    hwnd);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
             picker.FileTypeFilter.Add("*");
 
-            var file =
-                await picker
-                    .PickSingleFileAsync();
+            var file = await picker.PickSingleFileAsync();
 
             if (file != null)
             {
-                await InsertFileContentIntoInputAsync(
-                    file);
+                await InsertFileContentIntoInputAsync(file);
             }
         }
 
@@ -1189,10 +1008,11 @@ namespace Agent_MK_UI
                     var dialog = new ContentDialog
                     {
                         Title = "Large file",
-                        Content = $"'{file.Name}' is {properties.Size / 1024:N0} KB. To keep the model context healthy, it will be referenced as a workspace file instead of pasted into the chat.",
+                        Content =
+                            $"'{file.Name}' is {properties.Size / 1024:N0} KB. To keep the model context healthy, it will be referenced as a workspace file instead of pasted into the chat.",
                         PrimaryButtonText = "Use workspace reference",
                         CloseButtonText = "Cancel",
-                        XamlRoot = this.Content.XamlRoot
+                        XamlRoot = this.Content.XamlRoot,
                     };
 
                     if (await dialog.ShowAsync() != ContentDialogResult.Primary)
@@ -1203,16 +1023,16 @@ namespace Agent_MK_UI
                 if (properties.Size > InlineFileContextBytes)
                 {
                     block =
-                        $"Please read the attached project file \"{file.Name}\" from the workspace before answering. " +
-                        "Use the file as the source of truth and do not ask me to paste its full contents into chat.\n\n";
+                        $"Please read the attached project file \"{file.Name}\" from the workspace before answering. "
+                        + "Use the file as the source of truth and do not ask me to paste its full contents into chat.\n\n";
                 }
                 else
                 {
                     string content = await Windows.Storage.FileIO.ReadTextAsync(file);
                     block =
-                        $"<AGENT_MK_FILE path=\"{file.Name}\">\n" +
-                        content +
-                        "\n</AGENT_MK_FILE>\n\n";
+                        $"<AGENT_MK_FILE path=\"{file.Name}\">\n"
+                        + content
+                        + "\n</AGENT_MK_FILE>\n\n";
                 }
 
                 UserInputBox.Text = block + UserInputBox.Text;
@@ -1222,7 +1042,8 @@ namespace Agent_MK_UI
             {
                 await ShowMessageDialogAsync(
                     $"Could not read '{file.Name}': {ex.Message}",
-                    "Error");
+                    "Error"
+                );
             }
         }
 
@@ -1235,7 +1056,8 @@ namespace Agent_MK_UI
             Brush foreground,
             TextWrapping wrap,
             FontFamily? fontFamily = null,
-            double fontSize = 13)
+            double fontSize = 13
+        )
         {
             return new TextBlock
             {
@@ -1245,15 +1067,13 @@ namespace Agent_MK_UI
 
                 TextWrapping = wrap,
 
-                FontFamily =
-                    fontFamily ??
-                    new FontFamily("Segoe UI"),
+                FontFamily = fontFamily ?? new FontFamily("Segoe UI"),
 
                 FontSize = fontSize,
 
                 IsTextSelectionEnabled = true,
 
-                Margin = new Thickness(0)
+                Margin = new Thickness(0),
             };
         }
 
@@ -1266,9 +1086,7 @@ namespace Agent_MK_UI
             {
                 if (!segment.IsCode)
                 {
-                    if (string.IsNullOrWhiteSpace(segment.Text))
-                        continue;
-
+                    if (string.IsNullOrWhiteSpace(segment.Text)) continue;
                     content.Children.Add(CreateSelectableText(
                         segment.Text.Trim('\n'),
                         GetThemeBrush("TextOnAccentFillColorPrimaryBrush"),
@@ -1277,29 +1095,59 @@ namespace Agent_MK_UI
                 else
                 {
                     content.Children.Add(BuildCodeBlock(
-                        segment.Language,
-                        segment.Text,
-                        _currentChat?.ProjectPath,
-                        segment.SuggestedFileName));
+                        segment.Language, segment.Text, _currentChat?.ProjectPath, segment.SuggestedFileName));
                 }
             }
 
-            var scrollViewer = new ScrollViewer
+            var fullView = new ScrollViewer
             {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 MaxHeight = 600,
-                Content = content
+                Content = content,
+                Visibility = Visibility.Collapsed
             };
 
+            // First-line preview
+            string normalized = text.Replace("\r\n", "\n").TrimStart('\n');
+            int nl = normalized.IndexOf('\n');
+            string firstLine = nl >= 0 ? normalized[..nl] : normalized;
+            bool hasMore = nl >= 0 || segments.Any(s => s.IsCode) || firstLine.Length > 140;
+            if (firstLine.Length > 140) firstLine = firstLine[..140] + "…";
+
+            var previewBlock = CreateSelectableText(
+                firstLine, GetThemeBrush("TextOnAccentFillColorPrimaryBrush"), TextWrapping.NoWrap);
+            previewBlock.TextTrimming = TextTrimming.CharacterEllipsis;
+            var previewHost = new Border { Child = previewBlock, Visibility = hasMore ? Visibility.Visible : Visibility.Collapsed };
+
+            if (!hasMore)
+                fullView.Visibility = Visibility.Visible; // nothing to collapse, just show it
+
+            var toggleButton = new Button
+            {
+                Content = "Expand",
+                FontSize = 11,
+                Padding = new Thickness(6, 1, 6, 1),
+                Style = GetThemeStyle("QuietButtonStyle"),
+                Visibility = hasMore ? Visibility.Visible : Visibility.Collapsed
+            };
+
+            bool expanded = false;
+            toggleButton.Click += (_, __) =>
+            {
+                expanded = !expanded;
+                fullView.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+                previewHost.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;
+                toggleButton.Content = expanded ? "Collapse" : "Expand";
+            };
+
+            // Same look as the AI code-block copy button, instead of the old icon-only one
             var copyButton = new Button
             {
-                Content = new FontIcon { Glyph = "\uE8C8", FontSize = 12 },
-                Padding = new Thickness(5),
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Top,
-                Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
-                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent)
+                Content = "Copy",
+                FontSize = 11,
+                Padding = new Thickness(6, 1, 6, 1),
+                Style = GetThemeStyle("QuietButtonStyle")
             };
             ToolTipService.SetToolTip(copyButton, "Copy message");
             copyButton.Click += (_, __) =>
@@ -1309,13 +1157,22 @@ namespace Agent_MK_UI
                 Clipboard.SetContent(package);
             };
 
-            var bubbleLayout = new Grid();
-            bubbleLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            bubbleLayout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            Grid.SetColumn(scrollViewer, 0);
-            Grid.SetColumn(copyButton, 1);
-            bubbleLayout.Children.Add(scrollViewer);
-            bubbleLayout.Children.Add(copyButton);
+            var buttonRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+            buttonRow.Children.Add(toggleButton);
+            buttonRow.Children.Add(copyButton);
+
+            var body = new StackPanel { Spacing = 4 };
+            body.Children.Add(previewHost);
+            body.Children.Add(fullView);
+
+            var bubbleLayout = new StackPanel { Spacing = 4 };
+            bubbleLayout.Children.Add(buttonRow);
+            bubbleLayout.Children.Add(body);
 
             var border = new Border
             {
@@ -1337,7 +1194,7 @@ namespace Agent_MK_UI
             {
                 Text = "Working",
                 Foreground = GetThemeBrush("TextFillColorSecondaryBrush"),
-                FontSize = 12
+                FontSize = 12,
             };
 
             var progress = new ProgressRing
@@ -1345,13 +1202,13 @@ namespace Agent_MK_UI
                 IsActive = true,
                 Width = 14,
                 Height = 14,
-                Margin = new Thickness(0, 0, 8, 0)
+                Margin = new Thickness(0, 0, 8, 0),
             };
 
             var row = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
             };
             row.Children.Add(progress);
             row.Children.Add(statusText);
@@ -1364,7 +1221,7 @@ namespace Agent_MK_UI
                 Margin = new Thickness(0, 4, 0, 4),
                 MaxWidth = 760,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                Child = row
+                Child = row,
             };
 
             _thinkingStatusText = statusText;
@@ -1396,86 +1253,62 @@ namespace Agent_MK_UI
         // Assistant rendering
         // ------------------------------------------------------------
 
-        private void AppendAssistantBubble(
-            string text,
-            string? projectPath,
-            bool isError = false)
+        private void AppendAssistantBubble(string text, string? projectPath, bool isError = false)
         {
-            var content =
-                new StackPanel
-                {
-                    Spacing = 8
-                };
+            var content = new StackPanel { Spacing = 8 };
 
-            var segments =
-                CodeSnippetHelper.Split(text);
+            var segments = CodeSnippetHelper.Split(text);
 
             foreach (var segment in segments)
             {
                 if (!segment.IsCode)
                 {
-                    if (string.IsNullOrWhiteSpace(
-                            segment.Text))
+                    if (string.IsNullOrWhiteSpace(segment.Text))
                     {
                         continue;
                     }
 
-                    var textBox =
-                        CreateSelectableText(
-                            segment.Text.Trim('\n'),
+                    var textBox = CreateSelectableText(
+                        segment.Text.Trim('\n'),
+                        isError
+                            ? GetThemeBrush("SystemFillColorCriticalBrush")
+                            : GetThemeBrush("TextFillColorPrimaryBrush"),
+                        TextWrapping.Wrap
+                    );
 
-                            isError
-                                ? GetThemeBrush(
-                                    "SystemFillColorCriticalBrush")
-                                : GetThemeBrush(
-                                    "TextFillColorPrimaryBrush"),
-
-                            TextWrapping.Wrap);
-
-                    content.Children.Add(
-                        textBox);
+                    content.Children.Add(textBox);
                 }
                 else
                 {
                     content.Children.Add(
                         BuildCodeBlock(
-    segment.Language,
-    segment.Text,
-    projectPath,
-    segment.SuggestedFileName));
+                            segment.Language,
+                            segment.Text,
+                            projectPath,
+                            segment.SuggestedFileName
+                        )
+                    );
                 }
             }
 
-            var border =
-                new Border
-                {
-                    Background =
-                        GetThemeBrush(
-                            "CardBackgroundFillColorDefaultBrush"),
+            var border = new Border
+            {
+                Background = GetThemeBrush("CardBackgroundFillColorDefaultBrush"),
 
-                    CornerRadius =
-                        new CornerRadius(8),
+                CornerRadius = new CornerRadius(8),
 
-                    Padding =
-                        new Thickness(12),
+                Padding = new Thickness(12),
 
-                    Margin =
-                        new Thickness(
-                            0,
-                            4,
-                            0,
-                            4),
+                Margin = new Thickness(0, 4, 0, 4),
 
-                    MaxWidth = 760,
+                MaxWidth = 760,
 
-                    HorizontalAlignment =
-                        HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Left,
 
-                    Child = content
-                };
+                Child = content,
+            };
 
-            ChatHistoryPanel.Children.Add(
-                border);
+            ChatHistoryPanel.Children.Add(border);
         }
 
         // ------------------------------------------------------------
@@ -1483,195 +1316,111 @@ namespace Agent_MK_UI
         // ------------------------------------------------------------
 
         private UIElement BuildCodeBlock(
-    string language,
-    string code,
-    string? projectPath,
-    string? suggestedFileName = null)
+            string language,
+            string code,
+            string? projectPath,
+            string? suggestedFileName = null
+        )
         {
-            var outer =
-                new Border
-                {
-                    Background =
-                        GetThemeBrush(
-                            "LayerFillColorDefaultBrush"),
+            var outer = new Border
+            {
+                Background = GetThemeBrush("LayerFillColorDefaultBrush"),
 
-                    BorderBrush =
-                        GetThemeBrush(
-                            "CardStrokeColorDefaultBrush"),
+                BorderBrush = GetThemeBrush("CardStrokeColorDefaultBrush"),
 
-                    BorderThickness =
-                        new Thickness(1),
+                BorderThickness = new Thickness(1),
 
-                    CornerRadius =
-                        new CornerRadius(4),
+                CornerRadius = new CornerRadius(4),
 
-                    Margin =
-                        new Thickness(
-                            0,
-                            4,
-                            0,
-                            4),
+                Margin = new Thickness(0, 4, 0, 4),
 
-                    HorizontalAlignment =
-                        HorizontalAlignment.Stretch
-                };
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+            };
 
-            var stack =
-                new StackPanel
-                {
-                    Spacing = 0
-                };
+            var stack = new StackPanel { Spacing = 0 };
 
             // --------------------------------------------------------
             // Code header
             // --------------------------------------------------------
 
-            var header =
-                new Grid
-                {
-                    Margin =
-                        new Thickness(
-                            8,
-                            4,
-                            8,
-                            4)
-                };
+            var header = new Grid { Margin = new Thickness(8, 4, 8, 4) };
 
             header.ColumnDefinitions.Add(
-                new ColumnDefinition
-                {
-                    Width =
-                        new GridLength(
-                            1,
-                            GridUnitType.Star)
-                });
+                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+            );
 
-            header.ColumnDefinitions.Add(
-                new ColumnDefinition
-                {
-                    Width = GridLength.Auto
-                });
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            header.ColumnDefinitions.Add(
-                new ColumnDefinition
-                {
-                    Width = GridLength.Auto
-                });
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            var langLabel =
-                new TextBlock
-                {
-                    Text =
-                        string.IsNullOrWhiteSpace(language)
-                            ? "code"
-                            : language.ToUpperInvariant(),
+            var langLabel = new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(language) ? "code" : language.ToUpperInvariant(),
 
-                    Foreground =
-                        GetThemeBrush(
-                            "TextFillColorSecondaryBrush"),
+                Foreground = GetThemeBrush("TextFillColorSecondaryBrush"),
 
-                    FontFamily =
-                        new FontFamily("Consolas"),
+                FontFamily = new FontFamily("Consolas"),
 
-                    FontSize = 11,
+                FontSize = 11,
 
-                    VerticalAlignment =
-                        VerticalAlignment.Center
-                };
+                VerticalAlignment = VerticalAlignment.Center,
+            };
 
-            Grid.SetColumn(
-                langLabel,
-                0);
+            Grid.SetColumn(langLabel, 0);
 
-            header.Children.Add(
-                langLabel);
+            header.Children.Add(langLabel);
 
             // --------------------------------------------------------
             // Copy
             // --------------------------------------------------------
 
-            var copyButton =
-                new Button
-                {
-                    Content = "Copy",
+            var copyButton = new Button
+            {
+                Content = "Copy",
 
-                    FontSize = 11,
+                FontSize = 11,
 
-                    Padding =
-                        new Thickness(
-                            6,
-                            1,
-                            6,
-                            1),
+                Padding = new Thickness(6, 1, 6, 1),
 
-                    Margin =
-                        new Thickness(
-                            0,
-                            0,
-                            6,
-                            0),
+                Margin = new Thickness(0, 0, 6, 0),
 
-                    Style =
-                        GetThemeStyle(
-                            "QuietButtonStyle")
-                };
+                Style = GetThemeStyle("QuietButtonStyle"),
+            };
 
-            copyButton.Click +=
-                (_, __) =>
-                {
-                    var package =
-                        new DataPackage();
+            copyButton.Click += (_, __) =>
+            {
+                var package = new DataPackage();
 
-                    package.SetText(code);
+                package.SetText(code);
 
-                    Clipboard.SetContent(
-                        package);
-                };
+                Clipboard.SetContent(package);
+            };
 
-            Grid.SetColumn(
-                copyButton,
-                1);
+            Grid.SetColumn(copyButton, 1);
 
-            header.Children.Add(
-                copyButton);
+            header.Children.Add(copyButton);
 
             // --------------------------------------------------------
             // Save
             // --------------------------------------------------------
 
-            var saveButton =
-                new Button
-                {
-                    Content = "Save as file",
+            var saveButton = new Button
+            {
+                Content = "Save as file",
 
-                    FontSize = 11,
+                FontSize = 11,
 
-                    Padding =
-                        new Thickness(
-                            6,
-                            1,
-                            6,
-                            1),
+                Padding = new Thickness(6, 1, 6, 1),
 
-                    Style =
-                        GetThemeStyle(
-                            "QuietButtonStyle")
-                };
+                Style = GetThemeStyle("QuietButtonStyle"),
+            };
 
-            saveButton.Click +=
-                async (_, __) =>
-                    await SaveSnippetAsFileAsync(
-    language,
-    code,
-    projectPath,
-    suggestedFileName);
+            saveButton.Click += async (_, __) =>
+                await SaveSnippetAsFileAsync(language, code, projectPath, suggestedFileName);
 
-            Grid.SetColumn(
-                saveButton,
-                2);
+            Grid.SetColumn(saveButton, 2);
 
-            header.Children.Add(
-                saveButton);
+            header.Children.Add(saveButton);
 
             stack.Children.Add(header);
 
@@ -1679,32 +1428,24 @@ namespace Agent_MK_UI
             // CODE VIEW
             // --------------------------------------------------------
 
-            var codeText =
-                new TextBlock
-                {
-                    FontFamily =
-                        new FontFamily("Consolas"),
+            var codeText = new TextBlock
+            {
+                FontFamily = new FontFamily("Consolas"),
 
-                    FontSize = 12,
+                FontSize = 12,
 
-                    TextWrapping =
-                        TextWrapping.NoWrap,
+                TextWrapping = TextWrapping.NoWrap,
 
-                    IsTextSelectionEnabled = true,
+                IsTextSelectionEnabled = true,
 
-                    Padding =
-                        new Thickness(8),
+                Padding = new Thickness(8),
 
-                    Foreground =
-                        GetThemeBrush(
-                            "TextFillColorPrimaryBrush"),
+                Foreground = GetThemeBrush("TextFillColorPrimaryBrush"),
 
-                    HorizontalAlignment =
-                        HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Left,
 
-                    VerticalAlignment =
-                        VerticalAlignment.Top
-                };
+                VerticalAlignment = VerticalAlignment.Top,
+            };
 
             // --------------------------------------------------------
             // Syntax highlighting
@@ -1714,23 +1455,16 @@ namespace Agent_MK_UI
             // gets its own color.
             // --------------------------------------------------------
 
-            var tokens =
-                SyntaxHighlighter.Tokenize(
-                    code,
-                    language);
+            var tokens = SyntaxHighlighter.Tokenize(code, language);
 
             foreach (var token in tokens)
             {
-                var run =
-                    new Run
-                    {
-                        Text = token.Text,
+                var run = new Run
+                {
+                    Text = token.Text,
 
-                        Foreground =
-                            SyntaxHighlighter
-                                .BrushForToken(
-                                    token.Type)
-                    };
+                    Foreground = SyntaxHighlighter.BrushForToken(token.Type),
+                };
 
                 codeText.Inlines.Add(run);
             }
@@ -1739,22 +1473,18 @@ namespace Agent_MK_UI
             // Single scroll viewer
             // --------------------------------------------------------
 
-            var codeScroll =
-                new ScrollViewer
-                {
-                    HorizontalScrollBarVisibility =
-                        ScrollBarVisibility.Auto,
+            var codeScroll = new ScrollViewer
+            {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
 
-                    VerticalScrollBarVisibility =
-                        ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
 
-                    MaxHeight = 350,
+                MaxHeight = 350,
 
-                    Content = codeText
-                };
+                Content = codeText,
+            };
 
-            stack.Children.Add(
-                codeScroll);
+            stack.Children.Add(codeScroll);
 
             outer.Child = stack;
 
@@ -1766,19 +1496,17 @@ namespace Agent_MK_UI
         // ------------------------------------------------------------
 
         private async Task SaveSnippetAsFileAsync(
-    string language,
-    string code,
-    string? projectPath,
-    string? suggestedFileName = null)
+            string language,
+            string code,
+            string? projectPath,
+            string? suggestedFileName = null
+        )
         {
-            string ext =
-                CodeSnippetHelper.ExtensionForLanguage(
-                    language);
+            string ext = CodeSnippetHelper.ExtensionForLanguage(language);
 
             string fileName;
 
-            if (!string.IsNullOrWhiteSpace(
-                    suggestedFileName))
+            if (!string.IsNullOrWhiteSpace(suggestedFileName))
             {
                 fileName = suggestedFileName.Trim();
 
@@ -1793,46 +1521,28 @@ namespace Agent_MK_UI
                 fileName = "snippet" + ext;
             }
 
-            var picker =
-                new FileSavePicker();
+            var picker = new FileSavePicker();
 
-            var hwnd =
-                WinRT.Interop.WindowNative
-                    .GetWindowHandle(this);
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            WinRT.Interop.InitializeWithWindow
-                .Initialize(
-                    picker,
-                    hwnd);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
-            picker.SuggestedFileName =
-                fileName;
+            picker.SuggestedFileName = fileName;
 
-            picker.FileTypeChoices.Add(
-                "Source File",
-                new List<string>
-                {
-            ext
-                });
+            picker.FileTypeChoices.Add("Source File", new List<string> { ext });
 
-            var file =
-                await picker.PickSaveFileAsync();
+            var file = await picker.PickSaveFileAsync();
 
             if (file == null)
                 return;
 
             try
             {
-                await Windows.Storage.FileIO
-                    .WriteTextAsync(
-                        file,
-                        code);
+                await Windows.Storage.FileIO.WriteTextAsync(file, code);
             }
             catch (Exception ex)
             {
-                await ShowMessageDialogAsync(
-                    $"Could not save file: {ex.Message}",
-                    "Error");
+                await ShowMessageDialogAsync($"Could not save file: {ex.Message}", "Error");
             }
         }
 
@@ -1902,6 +1612,7 @@ namespace Agent_MK_UI
             SettingsOverlayHost.Children.Add(settingsView);
             SettingsOverlayHost.Visibility = Visibility.Visible;
         }
+
         private async void RemoveProjectButton_Click(object sender, RoutedEventArgs e)
         {
             if (_currentChat == null || _orchestrator == null)
@@ -1924,6 +1635,5 @@ namespace Agent_MK_UI
                 await ShowMessageDialogAsync(ex.Message, "Could not remove project");
             }
         }
-
     }
 }

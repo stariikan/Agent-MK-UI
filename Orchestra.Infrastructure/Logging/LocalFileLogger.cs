@@ -40,7 +40,8 @@ public class LocalFileLogger : IAgentLogger
     private void WriteLog(string level, string message)
     {
         // High-precision timestamp for debugging multithreaded AI operations
-        string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {message}{Environment.NewLine}";
+        string logEntry =
+            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {message}{Environment.NewLine}";
 
         // Critical: Ensure thread safety when the UI and AI background tasks log simultaneously
         lock (_lockObj)

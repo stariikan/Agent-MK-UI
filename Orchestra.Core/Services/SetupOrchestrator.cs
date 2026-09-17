@@ -47,19 +47,26 @@ namespace Orchestra.Core.Services
             ModelRecommender modelRecommender,
             PythonEnvironmentManager pythonManager,
             OllamaManager ollamaManager,
-            SetupStateStore stateStore)
+            SetupStateStore stateStore
+        )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _hardwareDetector = hardwareDetector ?? throw new ArgumentNullException(nameof(hardwareDetector));
-            _modelRecommender = modelRecommender ?? throw new ArgumentNullException(nameof(modelRecommender));
-            _pythonManager = pythonManager ?? throw new ArgumentNullException(nameof(pythonManager));
-            _ollamaManager = ollamaManager ?? throw new ArgumentNullException(nameof(ollamaManager));
+            _hardwareDetector =
+                hardwareDetector ?? throw new ArgumentNullException(nameof(hardwareDetector));
+            _modelRecommender =
+                modelRecommender ?? throw new ArgumentNullException(nameof(modelRecommender));
+            _pythonManager =
+                pythonManager ?? throw new ArgumentNullException(nameof(pythonManager));
+            _ollamaManager =
+                ollamaManager ?? throw new ArgumentNullException(nameof(ollamaManager));
             _stateStore = stateStore ?? throw new ArgumentNullException(nameof(stateStore));
 
             AiRuntimeDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AI_Runtime");
             VenvRootDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AgentMK", "venv");
+                "AgentMK",
+                "venv"
+            );
         }
 
         public bool IsSetupComplete() => _stateStore.IsSetupComplete();
@@ -67,7 +74,10 @@ namespace Orchestra.Core.Services
         public SetupState LoadState() => _stateStore.Load();
 
         /// <summary>Hardware detection is cheap and synchronous-ish; run it off the calling thread anyway to keep the UI responsive.</summary>
-        public Task<ModelRecommendation> DetectHardwareAndRecommendAsync(double? overrideRamGb = null, double? overrideVramGb = null)
+        public Task<ModelRecommendation> DetectHardwareAndRecommendAsync(
+            double? overrideRamGb = null,
+            double? overrideVramGb = null
+        )
         {
             return Task.Run(() =>
             {
@@ -77,8 +87,11 @@ namespace Orchestra.Core.Services
         }
 
         /// <summary>Synchronous wrapper so the UI can re-derive a recommendation from a hardware profile it already has (e.g. from ScanSystemAsync) without detecting hardware twice.</summary>
-        public ModelRecommendation GetRecommendation(HardwareProfile hardware, double? overrideRamGb = null, double? overrideVramGb = null)
-            => _modelRecommender.Recommend(hardware, overrideRamGb, overrideVramGb);
+        public ModelRecommendation GetRecommendation(
+            HardwareProfile hardware,
+            double? overrideRamGb = null,
+            double? overrideVramGb = null
+        ) => _modelRecommender.Recommend(hardware, overrideRamGb, overrideVramGb);
 
         /// <summary>
         /// Pre-flight check: looks at what's already on the machine
@@ -98,14 +111,19 @@ namespace Orchestra.Core.Services
             result.PythonExePath = systemPython;
             if (systemPython != null)
             {
-                result.PythonVersion = await Task.Run(() => _pythonManager.GetPythonVersionString(systemPython), ct);
+                result.PythonVersion = await Task.Run(
+                    () => _pythonManager.GetPythonVersionString(systemPython),
+                    ct
+                );
             }
 
             result.VenvExists = _pythonManager.VenvExists(VenvRootDir);
-            result.DependenciesInstalled = result.VenvExists && _pythonManager.AreDependenciesInstalled(VenvRootDir);
+            result.DependenciesInstalled =
+                result.VenvExists && _pythonManager.AreDependenciesInstalled(VenvRootDir);
 
             result.OllamaInstalled = _ollamaManager.IsInstalled();
-            result.OllamaRunning = result.OllamaInstalled && await _ollamaManager.IsReachableAsync(ct);
+            result.OllamaRunning =
+                result.OllamaInstalled && await _ollamaManager.IsReachableAsync(ct);
             result.InstalledModels = result.OllamaRunning
                 ? await _ollamaManager.ListInstalledModelsAsync(ct)
                 : new List<string>();
@@ -113,7 +131,10 @@ namespace Orchestra.Core.Services
             return result;
         }
 
-        public async Task<bool> EnsurePythonEnvironmentAsync(IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> EnsurePythonEnvironmentAsync(
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             if (!Directory.Exists(AiRuntimeDir))
             {
@@ -142,8 +163,14 @@ namespace Orchestra.Core.Services
 
             progress.Report($"Using system Python: {systemPython}");
 
-            bool venvOk = await _pythonManager.CreateVenvAsync(systemPython, VenvRootDir, progress, ct);
-            if (!venvOk) return false;
+            bool venvOk = await _pythonManager.CreateVenvAsync(
+                systemPython,
+                VenvRootDir,
+                progress,
+                ct
+            );
+            if (!venvOk)
+                return false;
 
             bool depsOk;
             if (_pythonManager.AreDependenciesInstalled(VenvRootDir))
@@ -154,9 +181,15 @@ namespace Orchestra.Core.Services
             else
             {
                 string requirementsPath = Path.Combine(AiRuntimeDir, "requirements.txt");
-                depsOk = await _pythonManager.InstallDependenciesAsync(VenvRootDir, requirementsPath, progress, ct);
+                depsOk = await _pythonManager.InstallDependenciesAsync(
+                    VenvRootDir,
+                    requirementsPath,
+                    progress,
+                    ct
+                );
             }
-            if (!depsOk) return false;
+            if (!depsOk)
+                return false;
 
             var state = _stateStore.Load();
             state.MarkStepComplete("python_installed");
@@ -168,18 +201,24 @@ namespace Orchestra.Core.Services
             return true;
         }
 
-        public async Task<bool> EnsureOllamaAsync(IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> EnsureOllamaAsync(
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             bool installed = await _ollamaManager.InstallAsync(progress, ct);
             if (!installed)
             {
-                progress.Report("Ollama installation could not be confirmed. You can install it " +
-                                 "manually from https://ollama.com/download and re-run setup.");
+                progress.Report(
+                    "Ollama installation could not be confirmed. You can install it "
+                        + "manually from https://ollama.com/download and re-run setup."
+                );
                 return false;
             }
 
             bool running = await _ollamaManager.EnsureRunningAsync(progress, ct);
-            if (!running) return false;
+            if (!running)
+                return false;
 
             var state = _stateStore.Load();
             state.MarkStepComplete("ollama_installed");
@@ -189,10 +228,15 @@ namespace Orchestra.Core.Services
             return true;
         }
 
-        public async Task<bool> PullModelAsync(string modelTag, IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> PullModelAsync(
+            string modelTag,
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             bool pulled = await _ollamaManager.PullModelAsync(modelTag, progress, ct);
-            if (!pulled) return false;
+            if (!pulled)
+                return false;
 
             var state = _stateStore.Load();
             state.ChosenModel = modelTag;
@@ -251,7 +295,10 @@ namespace Orchestra.Core.Services
         /// also isn't uninstalled (no safe way to do that from here); this
         /// clears everything the setup wizard put in place.
         /// </summary>
-        public async Task WipeEverythingAsync(IProgress<string> progress, CancellationToken ct = default)
+        public async Task WipeEverythingAsync(
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             var models = await _ollamaManager.ListInstalledModelsAsync(ct);
 
@@ -267,5 +314,3 @@ namespace Orchestra.Core.Services
         }
     }
 }
-
-

@@ -16,7 +16,10 @@ namespace Orchestra.Core.Services
     public class PythonEnvironmentManager
     {
         private readonly IAgentLogger _logger;
-        private static readonly Regex VersionRegex = new(@"Python (\d+)\.(\d+)", RegexOptions.Compiled);
+        private static readonly Regex VersionRegex = new(
+            @"Python (\d+)\.(\d+)",
+            RegexOptions.Compiled
+        );
 
         public PythonEnvironmentManager(IAgentLogger logger)
         {
@@ -32,7 +35,8 @@ namespace Orchestra.Core.Services
         {
             foreach (var candidate in new[] { "py", "python", "python3" })
             {
-                if (!ProcessRunner.CommandExists(candidate)) continue;
+                if (!ProcessRunner.CommandExists(candidate))
+                    continue;
 
                 try
                 {
@@ -47,9 +51,11 @@ namespace Orchestra.Core.Services
                     };
 
                     using var proc = System.Diagnostics.Process.Start(psi);
-                    if (proc == null) continue;
+                    if (proc == null)
+                        continue;
 
-                    string combined = proc.StandardOutput.ReadToEnd() + proc.StandardError.ReadToEnd();
+                    string combined =
+                        proc.StandardOutput.ReadToEnd() + proc.StandardError.ReadToEnd();
                     proc.WaitForExit(5000);
 
                     var match = VersionRegex.Match(combined);
@@ -72,26 +78,32 @@ namespace Orchestra.Core.Services
             return null;
         }
 
-        public async Task<bool> InstallPythonViaWingetAsync(IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> InstallPythonViaWingetAsync(
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             if (!ProcessRunner.CommandExists("winget"))
             {
-                progress.Report("winget is not available. Install Python 3.10+ manually from " +
-                                 "https://python.org/downloads/ and restart the app.");
+                progress.Report(
+                    "winget is not available. Install Python 3.10+ manually from "
+                        + "https://python.org/downloads/ and restart the app."
+                );
                 return false;
             }
 
             progress.Report("Installing the latest Python via winget (this can take a minute)...");
 
-            // ARCHITECTURAL FIX: 
-            // Changed '--id Python.Python.3.12' to '--id Python.Python'. 
+            // ARCHITECTURAL FIX:
+            // Changed '--id Python.Python.3.12' to '--id Python.Python'.
             // This instructs winget to pull the highest non-prerelease version available.
             var result = await ProcessRunner.RunAsync(
                 "winget",
                 "install -e --id Python.Python --silent --accept-package-agreements --accept-source-agreements",
                 progress,
                 timeout: TimeSpan.FromMinutes(10),
-                cancellationToken: ct);
+                cancellationToken: ct
+            );
 
             ProcessRunner.RefreshSessionPath();
 
@@ -119,9 +131,12 @@ namespace Orchestra.Core.Services
                 };
 
                 using var proc = System.Diagnostics.Process.Start(psi);
-                if (proc == null) return null;
+                if (proc == null)
+                    return null;
 
-                string combined = (proc.StandardOutput.ReadToEnd() + proc.StandardError.ReadToEnd()).Trim();
+                string combined = (
+                    proc.StandardOutput.ReadToEnd() + proc.StandardError.ReadToEnd()
+                ).Trim();
                 proc.WaitForExit(5000);
                 return combined.Length > 0 ? combined : null;
             }
@@ -144,13 +159,20 @@ namespace Orchestra.Core.Services
             return File.Exists(exePath) && File.Exists(cfgPath);
         }
 
-        public async Task<bool> CreateVenvAsync(string systemPython, string venvRootDir, IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> CreateVenvAsync(
+            string systemPython,
+            string venvRootDir,
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             string venvDir = Path.Combine(venvRootDir, ".venv");
 
             if (VenvExists(venvRootDir))
             {
-                progress.Report("Virtual environment already exists and is valid, skipping creation.");
+                progress.Report(
+                    "Virtual environment already exists and is valid, skipping creation."
+                );
                 return true;
             }
 
@@ -167,7 +189,9 @@ namespace Orchestra.Core.Services
                 catch (Exception ex)
                 {
                     _logger.LogError($"Failed to delete corrupted venv directory: {ex.Message}");
-                    progress.Report("Failed to clean up corrupted environment. Please restart the app or manually delete the AgentMK venv folder.");
+                    progress.Report(
+                        "Failed to clean up corrupted environment. Please restart the app or manually delete the AgentMK venv folder."
+                    );
                     return false;
                 }
             }
@@ -180,7 +204,8 @@ namespace Orchestra.Core.Services
                 $"-m venv \"{venvDir}\"",
                 progress,
                 timeout: TimeSpan.FromMinutes(3),
-                cancellationToken: ct);
+                cancellationToken: ct
+            );
 
             if (result.ExitCode != 0 || !VenvExists(venvRootDir))
             {
@@ -195,7 +220,8 @@ namespace Orchestra.Core.Services
         public bool AreDependenciesInstalled(string venvRootDir)
         {
             string venvPython = GetVenvPythonPath(venvRootDir);
-            if (!File.Exists(venvPython)) return false;
+            if (!File.Exists(venvPython))
+                return false;
 
             try
             {
@@ -210,7 +236,8 @@ namespace Orchestra.Core.Services
                 };
 
                 using var proc = System.Diagnostics.Process.Start(psi);
-                if (proc == null) return false;
+                if (proc == null)
+                    return false;
                 proc.WaitForExit(10000);
                 return proc.ExitCode == 0;
             }
@@ -226,33 +253,50 @@ namespace Orchestra.Core.Services
         /// AppData location, separate from AI_Runtime's script/requirements
         /// folder under the build output -- see SetupOrchestrator.
         /// </summary>
-        public async Task<bool> InstallDependenciesAsync(string venvRootDir, string requirementsFilePath, IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> InstallDependenciesAsync(
+            string venvRootDir,
+            string requirementsFilePath,
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             string venvPython = GetVenvPythonPath(venvRootDir);
 
             if (!File.Exists(venvPython))
             {
-                progress.Report("Cannot install dependencies: virtual environment Python not found.");
+                progress.Report(
+                    "Cannot install dependencies: virtual environment Python not found."
+                );
                 return false;
             }
 
             if (!File.Exists(requirementsFilePath))
             {
-                progress.Report($"No requirements.txt found at {requirementsFilePath}, skipping dependency install.");
+                progress.Report(
+                    $"No requirements.txt found at {requirementsFilePath}, skipping dependency install."
+                );
                 return true;
             }
 
             progress.Report("Upgrading pip...");
-            await ProcessRunner.RunAsync(venvPython, "-m pip install --upgrade pip --quiet", progress,
-                timeout: TimeSpan.FromMinutes(3), cancellationToken: ct);
+            await ProcessRunner.RunAsync(
+                venvPython,
+                "-m pip install --upgrade pip --quiet",
+                progress,
+                timeout: TimeSpan.FromMinutes(3),
+                cancellationToken: ct
+            );
 
-            progress.Report("Installing Python dependencies (openai, anthropic, google-generativeai, psutil)...");
+            progress.Report(
+                "Installing Python dependencies (openai, anthropic, google-generativeai, psutil)..."
+            );
             var result = await ProcessRunner.RunAsync(
                 venvPython,
                 $"-m pip install -r \"{requirementsFilePath}\" --quiet",
                 progress,
                 timeout: TimeSpan.FromMinutes(10),
-                cancellationToken: ct);
+                cancellationToken: ct
+            );
 
             if (result.ExitCode != 0)
             {

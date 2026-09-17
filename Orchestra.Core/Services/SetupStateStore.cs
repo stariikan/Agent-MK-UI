@@ -44,7 +44,9 @@ namespace Orchestra.Core.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"Setup state file was unreadable, starting fresh: {ex.Message}");
+                    _logger.LogWarning(
+                        $"Setup state file was unreadable, starting fresh: {ex.Message}"
+                    );
                     return new SetupState();
                 }
             }
@@ -94,12 +96,16 @@ namespace Orchestra.Core.Services
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(state.VenvPythonPath) || !File.Exists(state.VenvPythonPath))
+            if (
+                string.IsNullOrWhiteSpace(state.VenvPythonPath)
+                || !File.Exists(state.VenvPythonPath)
+            )
             {
                 _logger.LogWarning(
-                    $"Setup state says complete, but the venv Python at " +
-                    $"'{state.VenvPythonPath}' no longer exists (likely removed by a " +
-                    "rebuild/clean or deleted manually). Treating setup as incomplete.");
+                    $"Setup state says complete, but the venv Python at "
+                        + $"'{state.VenvPythonPath}' no longer exists (likely removed by a "
+                        + "rebuild/clean or deleted manually). Treating setup as incomplete."
+                );
                 return false;
             }
 

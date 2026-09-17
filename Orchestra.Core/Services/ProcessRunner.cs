@@ -20,7 +20,10 @@ namespace Orchestra.Core.Services
     {
         // Compiled Regex to strip ANSI terminal control sequences (progress bars, spinners, color codes)
         // Catches standard color codes, private terminal modes (with ?), carriage returns, and spinners.
-        private static readonly Regex AnsiRegex = new(@"(\x1b\[[0-9;?]*[a-zA-Z]|\r|[\u2800-\u28FF])", RegexOptions.Compiled);
+        private static readonly Regex AnsiRegex = new(
+            @"(\x1b\[[0-9;?]*[a-zA-Z]|\r|[\u2800-\u28FF])",
+            RegexOptions.Compiled
+        );
 
         public static async Task<ProcessResult> RunAsync(
             string fileName,
@@ -28,7 +31,8 @@ namespace Orchestra.Core.Services
             IProgress<string>? progress = null,
             string? workingDirectory = null,
             TimeSpan? timeout = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             var psi = new ProcessStartInfo
             {
@@ -55,7 +59,8 @@ namespace Orchestra.Core.Services
 
             process.OutputDataReceived += (_, e) =>
             {
-                if (e.Data == null) return;
+                if (e.Data == null)
+                    return;
 
                 // Fixed: Added string.Empty as the second argument for Regex.Replace
                 string cleanLine = AnsiRegex.Replace(e.Data, string.Empty);
@@ -68,7 +73,8 @@ namespace Orchestra.Core.Services
 
             process.ErrorDataReceived += (_, e) =>
             {
-                if (e.Data == null) return;
+                if (e.Data == null)
+                    return;
 
                 // Fixed: Added string.Empty as the second argument for Regex.Replace
                 string cleanLine = AnsiRegex.Replace(e.Data, string.Empty);
@@ -81,14 +87,21 @@ namespace Orchestra.Core.Services
 
             if (!process.Start())
             {
-                throw new InvalidOperationException($"Failed to start process: {fileName} {arguments}");
+                throw new InvalidOperationException(
+                    $"Failed to start process: {fileName} {arguments}"
+                );
             }
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            using var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+            using var timeoutCts = timeout.HasValue
+                ? new CancellationTokenSource(timeout.Value)
+                : new CancellationTokenSource();
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                timeoutCts.Token
+            );
 
             try
             {
@@ -96,17 +109,30 @@ namespace Orchestra.Core.Services
             }
             catch (OperationCanceledException)
             {
-                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+                try
+                {
+                    if (!process.HasExited)
+                        process.Kill(entireProcessTree: true);
+                }
+                catch
+                { /* best effort */
+                }
 
                 if (cancellationToken.IsCancellationRequested)
                 {
                     throw;
                 }
 
-                throw new TimeoutException($"Process timed out after {timeout}: {fileName} {arguments}");
+                throw new TimeoutException(
+                    $"Process timed out after {timeout}: {fileName} {arguments}"
+                );
             }
 
-            return new ProcessResult(process.ExitCode, stdOutBuffer.ToString(), stdErrBuffer.ToString());
+            return new ProcessResult(
+                process.ExitCode,
+                stdOutBuffer.ToString(),
+                stdErrBuffer.ToString()
+            );
         }
 
         public static bool CommandExists(string commandName)
@@ -124,7 +150,8 @@ namespace Orchestra.Core.Services
                 };
 
                 using var process = Process.Start(psi);
-                if (process == null) return false;
+                if (process == null)
+                    return false;
                 process.WaitForExit(3000);
                 return process.ExitCode == 0;
             }
@@ -136,10 +163,17 @@ namespace Orchestra.Core.Services
 
         public static void RefreshSessionPath()
         {
-            if (!OperatingSystem.IsWindows()) return;
+            if (!OperatingSystem.IsWindows())
+                return;
 
-            string? machine = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine);
-            string? user = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
+            string? machine = Environment.GetEnvironmentVariable(
+                "Path",
+                EnvironmentVariableTarget.Machine
+            );
+            string? user = Environment.GetEnvironmentVariable(
+                "Path",
+                EnvironmentVariableTarget.User
+            );
             Environment.SetEnvironmentVariable("Path", $"{machine};{user}");
         }
     }

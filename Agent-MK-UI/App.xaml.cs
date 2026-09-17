@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Reflection;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -42,14 +44,17 @@ namespace Agent_MK_UI
                 {
                     logger.LogInfo("[Boot] Environment incomplete. Launching SetupWindow...");
                     var state = stateStore.Load();
-                    bool isRepairMode = state != null && !string.IsNullOrWhiteSpace(state.ChosenModel);
+                    bool isRepairMode =
+                        state != null && !string.IsNullOrWhiteSpace(state.ChosenModel);
                     logger.LogInfo($"[Boot] Setup mode determined -> IsRepairMode: {isRepairMode}");
 
                     m_window = new SetupWindow(setupOrchestrator, isRepairMode);
                 }
                 else
                 {
-                    logger.LogInfo("[Boot] Environment fully intact. Attempting to start Python engine...");
+                    logger.LogInfo(
+                        "[Boot] Environment fully intact. Attempting to start Python engine..."
+                    );
                     if (TryStartPythonEngine())
                     {
                         logger.LogInfo("[Boot] Python engine started. Launching MainWindow...");
@@ -58,7 +63,9 @@ namespace Agent_MK_UI
                     }
                     else
                     {
-                        logger.LogInfo("[Boot] Python engine failed to start. Forcing RepairMode SetupWindow...");
+                        logger.LogInfo(
+                            "[Boot] Python engine failed to start. Forcing RepairMode SetupWindow..."
+                        );
                         m_window = new SetupWindow(setupOrchestrator, isRepairMode: true);
                     }
                 }
@@ -74,6 +81,37 @@ namespace Agent_MK_UI
             }
         }
 
+        private string DeployRuntimeToAppData()
+        {
+            // Extract the embedded Python files into %LOCALAPPDATA%\AgentMK\AI_Runtime
+            string localAppData = Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData
+            );
+            string runtimeDir = Path.Combine(localAppData, "AgentMK", "AI_Runtime");
+
+            // If headless.py is missing, extract the whole payload from the embedded zip
+            if (!File.Exists(Path.Combine(runtimeDir, "headless.py")))
+            {
+                if (Directory.Exists(runtimeDir))
+                {
+                    Directory.Delete(runtimeDir, true);
+                }
+                Directory.CreateDirectory(runtimeDir);
+
+                using Stream? stream = Assembly
+                    .GetExecutingAssembly()
+                    .GetManifestResourceStream("AIRuntime.zip");
+
+                if (stream != null)
+                {
+                    using ZipArchive archive = new ZipArchive(stream);
+                    archive.ExtractToDirectory(runtimeDir);
+                }
+            }
+
+            return runtimeDir;
+        }
+
         public bool TryStartPythonEngine()
         {
             var logger = Services!.GetRequiredService<IAgentLogger>();
@@ -83,8 +121,10 @@ namespace Agent_MK_UI
             try
             {
                 logger.LogInfo("Bootstrapping system: Launching Python Engine...");
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                string scriptPath = Path.Combine(baseDir, "AI_Runtime", "headless.py");
+
+                // Deploy/Verify the files in AppData before trying to launch
+                string runtimeDir = DeployRuntimeToAppData();
+                string scriptPath = Path.Combine(runtimeDir, "headless.py");
                 logger.LogInfo($"[Engine] Expected script path: {scriptPath}");
 
                 var state = stateStore.Load();
@@ -92,14 +132,27 @@ namespace Agent_MK_UI
                 logger.LogInfo($"[Engine] Configured venv python path: {pythonExe ?? "(null)"}");
 
                 // Validate venv directory and pyvenv.cfg existence
-                string? venvDir = !string.IsNullOrEmpty(pythonExe) ? Path.GetDirectoryName(Path.GetDirectoryName(pythonExe)) : null;
-                bool isVenvValid = !string.IsNullOrEmpty(venvDir) && File.Exists(Path.Combine(venvDir, "pyvenv.cfg"));
+                string? venvDir = !string.IsNullOrEmpty(pythonExe)
+                    ? Path.GetDirectoryName(Path.GetDirectoryName(pythonExe))
+                    : null;
+                bool isVenvValid =
+                    !string.IsNullOrEmpty(venvDir)
+                    && File.Exists(Path.Combine(venvDir, "pyvenv.cfg"));
 
-                logger.LogInfo($"[Engine] Validation checks -> ScriptExists: {File.Exists(scriptPath)}, PythonExeExists: {!string.IsNullOrEmpty(pythonExe) && File.Exists(pythonExe)}, VenvConfigValid: {isVenvValid}");
+                logger.LogInfo(
+                    $"[Engine] Validation checks -> ScriptExists: {File.Exists(scriptPath)}, PythonExeExists: {!string.IsNullOrEmpty(pythonExe) && File.Exists(pythonExe)}, VenvConfigValid: {isVenvValid}"
+                );
 
-                if (!File.Exists(scriptPath) || string.IsNullOrWhiteSpace(pythonExe) || !File.Exists(pythonExe) || !isVenvValid)
+                if (
+                    !File.Exists(scriptPath)
+                    || string.IsNullOrWhiteSpace(pythonExe)
+                    || !File.Exists(pythonExe)
+                    || !isVenvValid
+                )
                 {
-                    logger.LogError("CRITICAL: Python script or virtual environment configuration (pyvenv.cfg) is missing or corrupted.");
+                    logger.LogError(
+                        "CRITICAL: Python script or virtual environment configuration (pyvenv.cfg) is missing or corrupted."
+                    );
                     return false;
                 }
 
@@ -114,7 +167,9 @@ namespace Agent_MK_UI
 
                 if (!isRunning)
                 {
-                    logger.LogError("CRITICAL: Python engine process died immediately after StartProcess.");
+                    logger.LogError(
+                        "CRITICAL: Python engine process died immediately after StartProcess."
+                    );
                     return false;
                 }
 
@@ -123,7 +178,9 @@ namespace Agent_MK_UI
             }
             catch (Exception ex)
             {
-                logger.LogError($"Critical failure during Python engine initialization: {ex.Message} | StackTrace: {ex.StackTrace}");
+                logger.LogError(
+                    $"Critical failure during Python engine initialization: {ex.Message} | StackTrace: {ex.StackTrace}"
+                );
                 return false;
             }
         }

@@ -9,7 +9,8 @@ namespace Orchestra.Core.Services
     /// <summary>Thrown when the Python engine reports an error, or gives no response at all, for any action.</summary>
     public class AgentIpcException : Exception
     {
-        public AgentIpcException(string message) : base(message) { }
+        public AgentIpcException(string message)
+            : base(message) { }
     }
 
     /// <summary>
@@ -23,7 +24,11 @@ namespace Orchestra.Core.Services
         private readonly PythonEngine _pythonEngine;
         private readonly SetupStateStore _stateStore;
 
-        public AgentOrchestrator(IAgentLogger logger, PythonEngine pythonEngine, SetupStateStore stateStore)
+        public AgentOrchestrator(
+            IAgentLogger logger,
+            PythonEngine pythonEngine,
+            SetupStateStore stateStore
+        )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _pythonEngine = pythonEngine ?? throw new ArgumentNullException(nameof(pythonEngine));
@@ -39,7 +44,9 @@ namespace Orchestra.Core.Services
             }
             if (response.IsError)
             {
-                throw new AgentIpcException(response.ErrorMessage ?? "Unknown error from the Python engine.");
+                throw new AgentIpcException(
+                    response.ErrorMessage ?? "Unknown error from the Python engine."
+                );
             }
             return response;
         }
@@ -55,13 +62,15 @@ namespace Orchestra.Core.Services
 
             _logger.LogInfo($"Sending chat message to chat {chatId} ({prompt.Length} chars).");
 
-            var response = await SendAsync(new AgentRequest
-            {
-                Action = "chat",
-                ChatId = chatId,
-                Prompt = prompt,
-                AgentProfile = _stateStore.Load().AgentProfile,
-            });
+            var response = await SendAsync(
+                new AgentRequest
+                {
+                    Action = "chat",
+                    ChatId = chatId,
+                    Prompt = prompt,
+                    AgentProfile = _stateStore.Load().AgentProfile,
+                }
+            );
 
             return response.ResponseText;
         }
@@ -72,15 +81,21 @@ namespace Orchestra.Core.Services
             return response.Chats ?? new List<ChatSummary>();
         }
 
-        public async Task<ChatSummary> CreateChatAsync(string title, string? projectPath, string? model = null)
+        public async Task<ChatSummary> CreateChatAsync(
+            string title,
+            string? projectPath,
+            string? model = null
+        )
         {
-            var response = await SendAsync(new AgentRequest
-            {
-                Action = "create_chat",
-                Title = title,
-                ProjectPath = projectPath,
-                ModelName = model ?? DefaultModel,
-            });
+            var response = await SendAsync(
+                new AgentRequest
+                {
+                    Action = "create_chat",
+                    Title = title,
+                    ProjectPath = projectPath,
+                    ModelName = model ?? DefaultModel,
+                }
+            );
 
             return response.Chat ?? throw new AgentIpcException("create_chat returned no chat.");
         }
@@ -92,50 +107,61 @@ namespace Orchestra.Core.Services
 
         public async Task<ChatSummary> SetChatProjectAsync(int chatId, string? projectPath)
         {
-            var response = await SendAsync(new AgentRequest
-            {
-                Action = "set_chat_project",
-                ChatId = chatId,
-                ProjectPath = projectPath,
-            });
+            var response = await SendAsync(
+                new AgentRequest
+                {
+                    Action = "set_chat_project",
+                    ChatId = chatId,
+                    ProjectPath = projectPath,
+                }
+            );
 
-            return response.Chat ?? throw new AgentIpcException("set_chat_project returned no chat.");
+            return response.Chat
+                ?? throw new AgentIpcException("set_chat_project returned no chat.");
         }
 
         public async Task<ChatSummary> RenameChatAsync(int chatId, string title)
         {
-            var response = await SendAsync(new AgentRequest
-            {
-                Action = "rename_chat",
-                ChatId = chatId,
-                Title = title,
-            });
+            var response = await SendAsync(
+                new AgentRequest
+                {
+                    Action = "rename_chat",
+                    ChatId = chatId,
+                    Title = title,
+                }
+            );
 
             return response.Chat ?? throw new AgentIpcException("rename_chat returned no chat.");
         }
 
         public async Task<List<ChatMessageDto>> GetMessagesAsync(int chatId)
         {
-            var response = await SendAsync(new AgentRequest { Action = "get_messages", ChatId = chatId });
+            var response = await SendAsync(
+                new AgentRequest { Action = "get_messages", ChatId = chatId }
+            );
             return response.Messages ?? new List<ChatMessageDto>();
         }
 
         public async Task<List<ProjectFileEntry>> ListProjectFilesAsync(string projectPath)
         {
-            var response = await SendAsync(new AgentRequest { Action = "list_project_files", ProjectPath = projectPath });
+            var response = await SendAsync(
+                new AgentRequest { Action = "list_project_files", ProjectPath = projectPath }
+            );
             return response.Files ?? new List<ProjectFileEntry>();
         }
 
         public async Task<ContextUsage> GetContextUsageAsync(int chatId)
         {
-            var response = await SendAsync(new AgentRequest {
-                Action = "get_context_usage",
-                ChatId = chatId,
-                AgentProfile = _stateStore.Load().AgentProfile,
-            });
-            return response.ContextUsage ?? throw new AgentIpcException("get_context_usage returned no data.");
+            var response = await SendAsync(
+                new AgentRequest
+                {
+                    Action = "get_context_usage",
+                    ChatId = chatId,
+                    AgentProfile = _stateStore.Load().AgentProfile,
+                }
+            );
+            return response.ContextUsage
+                ?? throw new AgentIpcException("get_context_usage returned no data.");
         }
     }
 }
-
-

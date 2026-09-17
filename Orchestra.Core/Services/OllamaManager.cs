@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 using Orchestra.Core.Contracts;
 
 namespace Orchestra.Core.Services
@@ -42,7 +42,10 @@ namespace Orchestra.Core.Services
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 cts.CancelAfter(TimeSpan.FromSeconds(3));
-                var response = await _httpClient.GetAsync($"{OllamaApiBase}/api/version", cts.Token);
+                var response = await _httpClient.GetAsync(
+                    $"{OllamaApiBase}/api/version",
+                    cts.Token
+                );
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -51,7 +54,10 @@ namespace Orchestra.Core.Services
             }
         }
 
-        public async Task<bool> InstallAsync(IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> InstallAsync(
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             if (IsInstalled())
             {
@@ -67,7 +73,8 @@ namespace Orchestra.Core.Services
                     "install -e --id Ollama.Ollama --silent --accept-package-agreements --accept-source-agreements",
                     progress,
                     timeout: TimeSpan.FromMinutes(10),
-                    cancellationToken: ct);
+                    cancellationToken: ct
+                );
 
                 ProcessRunner.RefreshSessionPath();
 
@@ -85,8 +92,15 @@ namespace Orchestra.Core.Services
 
             string installerPath = Path.Combine(Path.GetTempPath(), "OllamaSetup.exe");
 
-            progress.Report("Downloading Ollama installer from https://ollama.com/download/OllamaSetup.exe ...");
-            using (var response = await _httpClient.GetAsync("https://ollama.com/download/OllamaSetup.exe", ct))
+            progress.Report(
+                "Downloading Ollama installer from https://ollama.com/download/OllamaSetup.exe ..."
+            );
+            using (
+                var response = await _httpClient.GetAsync(
+                    "https://ollama.com/download/OllamaSetup.exe",
+                    ct
+                )
+            )
             {
                 response.EnsureSuccessStatusCode();
                 await using var fs = File.Create(installerPath);
@@ -113,7 +127,10 @@ namespace Orchestra.Core.Services
             return IsInstalled();
         }
 
-        public async Task<bool> EnsureRunningAsync(IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> EnsureRunningAsync(
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
             if (await IsReachableAsync(ct))
             {
@@ -154,16 +171,23 @@ namespace Orchestra.Core.Services
             return false;
         }
 
-        public async Task<bool> PullModelAsync(string modelTag, IProgress<string> progress, CancellationToken ct = default)
+        public async Task<bool> PullModelAsync(
+            string modelTag,
+            IProgress<string> progress,
+            CancellationToken ct = default
+        )
         {
-            progress.Report($"Pulling model '{modelTag}' (this may take a while depending on size and connection speed)...");
+            progress.Report(
+                $"Pulling model '{modelTag}' (this may take a while depending on size and connection speed)..."
+            );
 
             var result = await ProcessRunner.RunAsync(
                 "ollama",
                 $"pull {modelTag}",
                 progress,
                 timeout: TimeSpan.FromHours(2),
-                cancellationToken: ct);
+                cancellationToken: ct
+            );
 
             if (result.ExitCode != 0)
             {
@@ -174,11 +198,21 @@ namespace Orchestra.Core.Services
             return true;
         }
 
-        public async Task<bool> DeleteModelAsync(string modelTag, IProgress<string>? progress = null, CancellationToken ct = default)
+        public async Task<bool> DeleteModelAsync(
+            string modelTag,
+            IProgress<string>? progress = null,
+            CancellationToken ct = default
+        )
         {
             progress?.Report($"Deleting model '{modelTag}'...");
 
-            var result = await ProcessRunner.RunAsync("ollama", $"rm {modelTag}", progress, timeout: TimeSpan.FromSeconds(30), cancellationToken: ct);
+            var result = await ProcessRunner.RunAsync(
+                "ollama",
+                $"rm {modelTag}",
+                progress,
+                timeout: TimeSpan.FromSeconds(30),
+                cancellationToken: ct
+            );
 
             if (result.ExitCode != 0)
             {
@@ -189,14 +223,15 @@ namespace Orchestra.Core.Services
             return true;
         }
 
-
         /// <summary>
         /// Returns a compact, human-readable snapshot of the currently loaded
         /// Ollama processes, equivalent to the useful part of `ollama ps`.
         /// This is intentionally best-effort: the chat UI should remain usable
         /// when Ollama is stopped or the CLI output changes slightly.
         /// </summary>
-        public async Task<OllamaProcessSummary> GetProcessSummaryAsync(CancellationToken ct = default)
+        public async Task<OllamaProcessSummary> GetProcessSummaryAsync(
+            CancellationToken ct = default
+        )
         {
             if (!IsInstalled() || !await IsReachableAsync(ct))
                 return new OllamaProcessSummary(false, string.Empty);
@@ -207,13 +242,14 @@ namespace Orchestra.Core.Services
                     "ollama",
                     "ps",
                     timeout: TimeSpan.FromSeconds(5),
-                    cancellationToken: ct);
+                    cancellationToken: ct
+                );
 
                 if (result.ExitCode != 0)
                     return new OllamaProcessSummary(true, "idle");
 
-                var rows = result.StdOut
-                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                var rows = result
+                    .StdOut.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(line => line.Trim())
                     .Where(line => !string.IsNullOrWhiteSpace(line))
                     .ToList();
@@ -227,12 +263,11 @@ namespace Orchestra.Core.Services
                 rows.RemoveAt(0);
                 var compactRows = rows.Select(row =>
                 {
-                    var columns = Regex.Split(row, @"\s{2,}")
+                    var columns = Regex
+                        .Split(row, @"\s{2,}")
                         .Where(c => !string.IsNullOrWhiteSpace(c))
                         .ToArray();
-                    return columns.Length > 1
-                        ? string.Join(" • ", columns.Skip(1))
-                        : "active";
+                    return columns.Length > 1 ? string.Join(" • ", columns.Skip(1)) : "active";
                 });
 
                 string text = string.Join("  |  ", compactRows);
@@ -262,7 +297,12 @@ namespace Orchestra.Core.Services
 
             try
             {
-                var result = await ProcessRunner.RunAsync("ollama", "list", timeout: TimeSpan.FromSeconds(10), cancellationToken: ct);
+                var result = await ProcessRunner.RunAsync(
+                    "ollama",
+                    "list",
+                    timeout: TimeSpan.FromSeconds(10),
+                    cancellationToken: ct
+                );
                 if (result.ExitCode != 0)
                 {
                     return new List<string>();
@@ -277,7 +317,8 @@ namespace Orchestra.Core.Services
                 for (int i = 1; i < lines.Length; i++)
                 {
                     var trimmed = lines[i].Trim();
-                    if (trimmed.Length == 0) continue;
+                    if (trimmed.Length == 0)
+                        continue;
 
                     int firstSpace = trimmed.IndexOf(' ');
                     string tag = firstSpace > 0 ? trimmed[..firstSpace] : trimmed;

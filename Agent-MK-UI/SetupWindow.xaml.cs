@@ -1,3 +1,8 @@
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -5,11 +10,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Orchestra.Core.Models;
 using Orchestra.Core.Services;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agent_MK_UI
 {
@@ -27,17 +27,25 @@ namespace Agent_MK_UI
         private readonly System.Collections.Concurrent.ConcurrentQueue<string> _logBuffer = new();
         private readonly System.Collections.Generic.List<string> _recentLogs = new(20);
         private DispatcherTimer? _logFlushTimer;
+
         public SetupWindow(SetupOrchestrator orchestrator, bool isRepairMode = false)
         {
             this.InitializeComponent();
             _logFlushTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(100) // Flush 10 times a second
+                Interval = TimeSpan.FromMilliseconds(100), // Flush 10 times a second
             };
             _logFlushTimer.Tick += (s, e) => FlushLogBuffer();
             _logFlushTimer.Start();
             this.Title = isRepairMode ? "Agent-MK Repair" : "Agent-MK Setup";
             this.ExtendsContentIntoTitleBar = true;
+
+            //  Dynamically resolve the absolute path to the icon for the setup window
+            string iconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "icon.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                this.AppWindow.SetIcon(iconPath);
+            }
 
             _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
             _isRepairMode = isRepairMode;
@@ -61,9 +69,10 @@ namespace Agent_MK_UI
                 DisplayScanResult(_scan);
 
                 // ARCHITECTURAL FIX: Dynamic Repair Inference
-                // If Python/Venv is broken, but Ollama and models already exist, 
+                // If Python/Venv is broken, but Ollama and models already exist,
                 // we should auto-switch to Repair mode even if the window wasn't explicitly launched that way.
-                bool pythonIsBroken = !_scan.PythonFound || !_scan.VenvExists || !_scan.DependenciesInstalled;
+                bool pythonIsBroken =
+                    !_scan.PythonFound || !_scan.VenvExists || !_scan.DependenciesInstalled;
                 bool ollamaIsReady = _scan.OllamaRunning && _scan.InstalledModels.Count > 0;
 
                 bool effectiveRepairMode = _isRepairMode || (pythonIsBroken && ollamaIsReady);
@@ -74,7 +83,8 @@ namespace Agent_MK_UI
                 {
                     // -- STRICT REPAIR MODE UI --
                     SetupTitleText.Text = "Repairing Environment";
-                    SetupSubtitleText.Text = "Your settings and models are safe, but the background runtime is missing or corrupted. We'll rebuild it now.";
+                    SetupSubtitleText.Text =
+                        "Your settings and models are safe, but the background runtime is missing or corrupted. We'll rebuild it now.";
 
                     HardwarePanelBorder.Visibility = Visibility.Collapsed;
                     ModelSelectionBorder.Visibility = Visibility.Collapsed;
@@ -88,10 +98,13 @@ namespace Agent_MK_UI
                     if (effectiveRepairMode)
                     {
                         SetupTitleText.Text = "Repair & Download";
-                        SetupSubtitleText.Text = "The runtime is corrupted AND no models were found. We need to rebuild the environment and pull a model.";
+                        SetupSubtitleText.Text =
+                            "The runtime is corrupted AND no models were found. We need to rebuild the environment and pull a model.";
                     }
 
-                    ModelComboBox.ItemsSource = PopularModelCatalog.Models.Select(m => m.OllamaTag).ToList();
+                    ModelComboBox.ItemsSource = PopularModelCatalog
+                        .Models.Select(m => m.OllamaTag)
+                        .ToList();
                     SetupProgressBar.Maximum = 4;
 
                     _recommendation = _orchestrator.GetRecommendation(_scan.Hardware);
@@ -105,7 +118,9 @@ namespace Agent_MK_UI
             {
                 Fail($"Initial scan failed: {ex.Message}");
                 _requiresModelPull = true;
-                ModelComboBox.ItemsSource = PopularModelCatalog.Models.Select(m => m.OllamaTag).ToList();
+                ModelComboBox.ItemsSource = PopularModelCatalog
+                    .Models.Select(m => m.OllamaTag)
+                    .ToList();
                 ModelComboBox.Text = "qwen3:14bq4_K_M"; // Updated to match your actual default
                 UpdateModelExplanation("qwen3:14bq4_K_M");
             }
@@ -121,7 +136,10 @@ namespace Agent_MK_UI
             UpdateModelExplanation(selectedTag);
         }
 
-        private void ModelComboBox_TextSubmitted(ComboBox sender, ComboBoxTextSubmittedEventArgs args)
+        private void ModelComboBox_TextSubmitted(
+            ComboBox sender,
+            ComboBoxTextSubmittedEventArgs args
+        )
         {
             UpdateModelExplanation(args.Text);
         }
@@ -134,67 +152,94 @@ namespace Agent_MK_UI
                 return;
             }
 
-            var knownModel = PopularModelCatalog.Models.FirstOrDefault(m => m.OllamaTag == modelTag.Trim());
+            var knownModel = PopularModelCatalog.Models.FirstOrDefault(m =>
+                m.OllamaTag == modelTag.Trim()
+            );
 
             if (knownModel != null)
             {
                 // It's a catalog model: Show standard specs
-                ModelExplanationText.Text = $"Size: {knownModel.ParamSize} | VRAM needed: ~{knownModel.ApproxVramGb}GB\n{knownModel.Description}";
-                ModelExplanationText.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+                ModelExplanationText.Text =
+                    $"Size: {knownModel.ParamSize} | VRAM needed: ~{knownModel.ApproxVramGb}GB\n{knownModel.Description}";
+                ModelExplanationText.Foreground = (Brush)
+                    Application.Current.Resources["TextFillColorSecondaryBrush"];
                 ModelExplanationText.Visibility = Visibility.Visible;
             }
             else
             {
                 // It's a custom typed model: Show typo warning
-                ModelExplanationText.Text = "Custom model tag entered. Please ensure it is written without typos, as this exact tag will be pulled from the Ollama registry.";
-                ModelExplanationText.Foreground = (Brush)Application.Current.Resources["SystemFillColorCautionBrush"]; // Yellow warning color
+                ModelExplanationText.Text =
+                    "Custom model tag entered. Please ensure it is written without typos, as this exact tag will be pulled from the Ollama registry.";
+                ModelExplanationText.Foreground = (Brush)
+                    Application.Current.Resources["SystemFillColorCautionBrush"]; // Yellow warning color
                 ModelExplanationText.Visibility = Visibility.Visible;
             }
         }
-
 
         // ------------------------------------------------------------
         // System Scan Checklist UI
         // ------------------------------------------------------------
 
-        private enum ScanStatus { Ok, Missing, Pending, Fail }
+        private enum ScanStatus
+        {
+            Ok,
+            Missing,
+            Pending,
+            Fail,
+        }
 
         private void DisplayScanResult(SystemScanResult scan)
         {
             ScanChecklistPanel.Children.Clear();
 
             AddScanRow(
-                scan.PythonFound ? $"Python found ({scan.PythonVersion ?? scan.PythonExePath})" : "Python 3.10+ not found -- will install",
-                scan.PythonFound ? ScanStatus.Ok : ScanStatus.Missing);
+                scan.PythonFound
+                    ? $"Python found ({scan.PythonVersion ?? scan.PythonExePath})"
+                    : "Python 3.10+ not found -- will install",
+                scan.PythonFound ? ScanStatus.Ok : ScanStatus.Missing
+            );
 
             if (scan.PythonFound)
             {
                 AddScanRow(
-                    scan.VenvExists ? "Virtual environment already exists" : "Virtual environment not created yet",
-                    scan.VenvExists ? ScanStatus.Ok : ScanStatus.Missing);
+                    scan.VenvExists
+                        ? "Virtual environment already exists"
+                        : "Virtual environment not created yet",
+                    scan.VenvExists ? ScanStatus.Ok : ScanStatus.Missing
+                );
 
                 if (scan.VenvExists)
                 {
                     AddScanRow(
-                        scan.DependenciesInstalled ? "Python dependencies already installed" : "Python dependencies not installed yet",
-                        scan.DependenciesInstalled ? ScanStatus.Ok : ScanStatus.Missing);
+                        scan.DependenciesInstalled
+                            ? "Python dependencies already installed"
+                            : "Python dependencies not installed yet",
+                        scan.DependenciesInstalled ? ScanStatus.Ok : ScanStatus.Missing
+                    );
                 }
             }
 
             AddScanRow(
-                scan.OllamaInstalled ? "Ollama is installed" : "Ollama not installed -- will install",
-                scan.OllamaInstalled ? ScanStatus.Ok : ScanStatus.Missing);
+                scan.OllamaInstalled
+                    ? "Ollama is installed"
+                    : "Ollama not installed -- will install",
+                scan.OllamaInstalled ? ScanStatus.Ok : ScanStatus.Missing
+            );
 
             if (scan.OllamaInstalled)
             {
                 AddScanRow(
                     scan.OllamaRunning ? "Ollama is running" : "Ollama is not currently running",
-                    scan.OllamaRunning ? ScanStatus.Ok : ScanStatus.Missing);
+                    scan.OllamaRunning ? ScanStatus.Ok : ScanStatus.Missing
+                );
             }
 
             if (scan.InstalledModels.Count > 0)
             {
-                AddScanRow($"Models already downloaded: {string.Join(", ", scan.InstalledModels)}", ScanStatus.Ok);
+                AddScanRow(
+                    $"Models already downloaded: {string.Join(", ", scan.InstalledModels)}",
+                    ScanStatus.Ok
+                );
             }
             else
             {
@@ -203,7 +248,10 @@ namespace Agent_MK_UI
 
             if (scan.IsFullyReady && !_requiresModelPull)
             {
-                AddScanRow("Everything required is already set up -- setup will only need to confirm/pull the model you choose below.", ScanStatus.Ok);
+                AddScanRow(
+                    "Everything required is already set up -- setup will only need to confirm/pull the model you choose below.",
+                    ScanStatus.Ok
+                );
             }
         }
 
@@ -225,13 +273,15 @@ namespace Agent_MK_UI
                 _ => new SolidColorBrush(Microsoft.UI.Colors.Gray),
             };
 
-            ScanChecklistPanel.Children.Add(new TextBlock
-            {
-                Text = prefix + text,
-                Foreground = color,
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 2, 0, 2),
-            });
+            ScanChecklistPanel.Children.Add(
+                new TextBlock
+                {
+                    Text = prefix + text,
+                    Foreground = color,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 2, 0, 2),
+                }
+            );
         }
 
         private async Task RefreshScanUiAsync()
@@ -241,7 +291,9 @@ namespace Agent_MK_UI
                 _scan = await _orchestrator.ScanSystemAsync();
                 DisplayScanResult(_scan);
             }
-            catch { /* Non-fatal */ }
+            catch
+            { /* Non-fatal */
+            }
         }
 
         private void DisplayRecommendation(ModelRecommendation rec)
@@ -251,9 +303,9 @@ namespace Agent_MK_UI
                 : "unknown";
 
             HardwareSummaryText.Text =
-                $"RAM: {rec.Hardware.RamGb:F1} GB   |   GPU: {rec.Hardware.GpuName ?? "none detected"} " +
-                $"({rec.Hardware.GpuVendor})   |   VRAM: {vram}\n" +
-                $"Recommended model: {rec.RecommendedModel}  [{rec.RecommendedTier}, ~{rec.ApproxDiskGb:F1} GB on disk]";
+                $"RAM: {rec.Hardware.RamGb:F1} GB   |   GPU: {rec.Hardware.GpuName ?? "none detected"} "
+                + $"({rec.Hardware.GpuVendor})   |   VRAM: {vram}\n"
+                + $"Recommended model: {rec.RecommendedModel}  [{rec.RecommendedTier}, ~{rec.ApproxDiskGb:F1} GB on disk]";
 
             RecommendationReasonText.Text = rec.Reason;
             RecommendationNotesText.Text = rec.Notes.Count > 0 ? string.Join(" ", rec.Notes) : "";
@@ -265,7 +317,8 @@ namespace Agent_MK_UI
 
         private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_running) return;
+            if (_running)
+                return;
 
             string chosenModel = "";
 
@@ -292,7 +345,10 @@ namespace Agent_MK_UI
             try
             {
                 AppendLog($"=== Step 1/{SetupProgressBar.Maximum}: Python environment ===");
-                bool pythonOk = await _orchestrator.EnsurePythonEnvironmentAsync(progress, _cts.Token);
+                bool pythonOk = await _orchestrator.EnsurePythonEnvironmentAsync(
+                    progress,
+                    _cts.Token
+                );
                 if (!pythonOk)
                 {
                     Fail("Python environment setup failed. See log above.");
@@ -314,10 +370,16 @@ namespace Agent_MK_UI
                 if (_requiresModelPull)
                 {
                     AppendLog($"=== Step 3/4: Downloading model '{chosenModel}' ===");
-                    bool pullOk = await _orchestrator.PullModelAsync(chosenModel, progress, _cts.Token);
+                    bool pullOk = await _orchestrator.PullModelAsync(
+                        chosenModel,
+                        progress,
+                        _cts.Token
+                    );
                     if (!pullOk)
                     {
-                        Fail($"Failed to pull model '{chosenModel}'. Check the model tag and your connection.");
+                        Fail(
+                            $"Failed to pull model '{chosenModel}'. Check the model tag and your connection."
+                        );
                         return;
                     }
                     SetupProgressBar.Value = 3;
@@ -331,12 +393,17 @@ namespace Agent_MK_UI
                 }
                 else
                 {
-                    if (string.IsNullOrWhiteSpace(_orchestrator.LoadState().ChosenModel) && _scan?.InstalledModels.Count > 0)
+                    if (
+                        string.IsNullOrWhiteSpace(_orchestrator.LoadState().ChosenModel)
+                        && _scan?.InstalledModels.Count > 0
+                    )
                     {
                         _orchestrator.SetChosenModel(_scan.InstalledModels.First());
                     }
                     AppendLog("=== Repair Complete! ===");
-                    AppendLog("The background engine has been successfully rebuilt. Click 'Continue to Chat' to start.");
+                    AppendLog(
+                        "The background engine has been successfully rebuilt. Click 'Continue to Chat' to start."
+                    );
                 }
 
                 StatusText.Text = "Done.";
@@ -373,7 +440,8 @@ namespace Agent_MK_UI
 
         private void FlushLogBuffer()
         {
-            if (_logBuffer.IsEmpty) return;
+            if (_logBuffer.IsEmpty)
+                return;
 
             bool newLinesAdded = false;
             while (_logBuffer.TryDequeue(out var line))
@@ -421,7 +489,10 @@ namespace Agent_MK_UI
             }
         }
 
-        private async void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+        private async void AppWindow_Closing(
+            Microsoft.UI.Windowing.AppWindow sender,
+            Microsoft.UI.Windowing.AppWindowClosingEventArgs args
+        )
         {
             if (_running)
             {
@@ -430,10 +501,11 @@ namespace Agent_MK_UI
                 var dialog = new ContentDialog
                 {
                     Title = "Process in progress",
-                    Content = "A process is currently running. Closing now may leave the environment partially configured. Close anyway?",
+                    Content =
+                        "A process is currently running. Closing now may leave the environment partially configured. Close anyway?",
                     PrimaryButtonText = "Yes",
                     CloseButtonText = "No",
-                    XamlRoot = this.Content.XamlRoot
+                    XamlRoot = this.Content.XamlRoot,
                 };
 
                 var result = await dialog.ShowAsync();

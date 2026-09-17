@@ -16,9 +16,7 @@ namespace Agent_MK_UI.Helpers
     /// </summary>
     public static class SyntaxHighlighter
     {
-        public sealed record Token(
-            TokenType Type,
-            string Text);
+        public sealed record Token(TokenType Type, string Text);
 
         public enum TokenType
         {
@@ -31,16 +29,14 @@ namespace Agent_MK_UI.Helpers
             Preprocessor,
             Operator,
             Attribute,
-            Function
+            Function,
         }
 
         // ------------------------------------------------------------
         // Public API
         // ------------------------------------------------------------
 
-        public static IReadOnlyList<Token> Tokenize(
-            string? code,
-            string? language)
+        public static IReadOnlyList<Token> Tokenize(string? code, string? language)
         {
             if (string.IsNullOrEmpty(code))
                 return Array.Empty<Token>();
@@ -49,34 +45,25 @@ namespace Agent_MK_UI.Helpers
 
             return lang switch
             {
-                "cs" or "csharp" or "c#" or "razor" or "cshtml"
-                    => TokenizeCSharp(code),
+                "cs" or "csharp" or "c#" or "razor" or "cshtml" => TokenizeCSharp(code),
 
-                "js" or "javascript" or "jsx"
-                    => TokenizeJavaScript(code),
+                "js" or "javascript" or "jsx" => TokenizeJavaScript(code),
 
-                "ts" or "typescript" or "tsx"
-                    => TokenizeTypeScript(code),
+                "ts" or "typescript" or "tsx" => TokenizeTypeScript(code),
 
-                "py" or "python"
-                    => TokenizePython(code),
+                "py" or "python" => TokenizePython(code),
 
-                "json"
-                    => TokenizeJson(code),
+                "json" => TokenizeJson(code),
 
-                "html" or "htm" or "xml"
-                    => TokenizeMarkup(code),
+                "html" or "htm" or "xml" => TokenizeMarkup(code),
 
-                "css" or "scss"
-                    => TokenizeCss(code),
+                "css" or "scss" => TokenizeCss(code),
 
-                "bash" or "sh" or "shell"
-                    => TokenizeShell(code),
+                "bash" or "sh" or "shell" => TokenizeShell(code),
 
-                "sql"
-                    => TokenizeSql(code),
+                "sql" => TokenizeSql(code),
 
-                _ => TokenizeGeneric(code)
+                _ => TokenizeGeneric(code),
             };
         }
 
@@ -84,8 +71,7 @@ namespace Agent_MK_UI.Helpers
         // Colors
         // ------------------------------------------------------------
 
-        public static Brush BrushForToken(
-            TokenType type)
+        public static Brush BrushForToken(TokenType type)
         {
             // Visual Studio-inspired palette.
             //
@@ -94,35 +80,25 @@ namespace Agent_MK_UI.Helpers
 
             return type switch
             {
-                TokenType.Keyword =>
-                    Brush("#569CD6"),
+                TokenType.Keyword => Brush("#569CD6"),
 
-                TokenType.Type =>
-                    Brush("#4EC9B0"),
+                TokenType.Type => Brush("#4EC9B0"),
 
-                TokenType.String =>
-                    Brush("#CE9178"),
+                TokenType.String => Brush("#CE9178"),
 
-                TokenType.Comment =>
-                    Brush("#6A9955"),
+                TokenType.Comment => Brush("#6A9955"),
 
-                TokenType.Number =>
-                    Brush("#B5CEA8"),
+                TokenType.Number => Brush("#B5CEA8"),
 
-                TokenType.Preprocessor =>
-                    Brush("#C586C0"),
+                TokenType.Preprocessor => Brush("#C586C0"),
 
-                TokenType.Operator =>
-                    Brush("#D4D4D4"),
+                TokenType.Operator => Brush("#D4D4D4"),
 
-                TokenType.Attribute =>
-                    Brush("#9CDCFE"),
+                TokenType.Attribute => Brush("#9CDCFE"),
 
-                TokenType.Function =>
-                    Brush("#DCDCAA"),
+                TokenType.Function => Brush("#DCDCAA"),
 
-                _ =>
-                    Brush("#D4D4D4")
+                _ => Brush("#D4D4D4"),
             };
         }
 
@@ -130,11 +106,9 @@ namespace Agent_MK_UI.Helpers
         // Tokenizers
         // ------------------------------------------------------------
 
-        private static List<Token> TokenizeCSharp(
-            string code)
+        private static List<Token> TokenizeCSharp(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.Ordinal)
+            var keywords = new HashSet<string>(StringComparer.Ordinal)
             {
                 "abstract",
                 "as",
@@ -214,11 +188,10 @@ namespace Agent_MK_UI.Helpers
                 "value",
                 "with",
                 "yield",
-                "global"
+                "global",
             };
 
-            var types = new HashSet<string>(
-                StringComparer.Ordinal)
+            var types = new HashSet<string>(StringComparer.Ordinal)
             {
                 "bool",
                 "byte",
@@ -238,7 +211,6 @@ namespace Agent_MK_UI.Helpers
                 "ulong",
                 "ushort",
                 "void",
-
                 "Task",
                 "Task<T>",
                 "List",
@@ -253,21 +225,15 @@ namespace Agent_MK_UI.Helpers
                 "TimeSpan",
                 "Guid",
                 "Action",
-                "Func"
+                "Func",
             };
 
-            return TokenizeProgrammingLanguage(
-                code,
-                keywords,
-                types,
-                allowHashComments: false);
+            return TokenizeProgrammingLanguage(code, keywords, types, allowHashComments: false);
         }
 
-        private static List<Token> TokenizeJavaScript(
-            string code)
+        private static List<Token> TokenizeJavaScript(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.Ordinal)
+            var keywords = new HashSet<string>(StringComparer.Ordinal)
             {
                 "as",
                 "async",
@@ -314,11 +280,10 @@ namespace Agent_MK_UI.Helpers
                 "void",
                 "while",
                 "with",
-                "yield"
+                "yield",
             };
 
-            var types = new HashSet<string>(
-                StringComparer.Ordinal)
+            var types = new HashSet<string>(StringComparer.Ordinal)
             {
                 "Array",
                 "Boolean",
@@ -334,21 +299,15 @@ namespace Agent_MK_UI.Helpers
                 "Number",
                 "JSON",
                 "Math",
-                "console"
+                "console",
             };
 
-            return TokenizeProgrammingLanguage(
-                code,
-                keywords,
-                types,
-                allowHashComments: false);
+            return TokenizeProgrammingLanguage(code, keywords, types, allowHashComments: false);
         }
 
-        private static List<Token> TokenizeTypeScript(
-            string code)
+        private static List<Token> TokenizeTypeScript(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.Ordinal)
+            var keywords = new HashSet<string>(StringComparer.Ordinal)
             {
                 "abstract",
                 "any",
@@ -420,11 +379,10 @@ namespace Agent_MK_UI.Helpers
                 "void",
                 "while",
                 "with",
-                "yield"
+                "yield",
             };
 
-            var types = new HashSet<string>(
-                StringComparer.Ordinal)
+            var types = new HashSet<string>(StringComparer.Ordinal)
             {
                 "Array",
                 "Boolean",
@@ -437,21 +395,15 @@ namespace Agent_MK_UI.Helpers
                 "Set",
                 "String",
                 "Number",
-                "React"
+                "React",
             };
 
-            return TokenizeProgrammingLanguage(
-                code,
-                keywords,
-                types,
-                allowHashComments: false);
+            return TokenizeProgrammingLanguage(code, keywords, types, allowHashComments: false);
         }
 
-        private static List<Token> TokenizePython(
-            string code)
+        private static List<Token> TokenizePython(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.Ordinal)
+            var keywords = new HashSet<string>(StringComparer.Ordinal)
             {
                 "and",
                 "as",
@@ -489,11 +441,10 @@ namespace Agent_MK_UI.Helpers
                 "try",
                 "while",
                 "with",
-                "yield"
+                "yield",
             };
 
-            var types = new HashSet<string>(
-                StringComparer.Ordinal)
+            var types = new HashSet<string>(StringComparer.Ordinal)
             {
                 "bool",
                 "bytes",
@@ -506,18 +457,13 @@ namespace Agent_MK_UI.Helpers
                 "set",
                 "str",
                 "tuple",
-                "Exception"
+                "Exception",
             };
 
-            return TokenizeProgrammingLanguage(
-                code,
-                keywords,
-                types,
-                allowHashComments: true);
+            return TokenizeProgrammingLanguage(code, keywords, types, allowHashComments: true);
         }
 
-        private static List<Token> TokenizeJson(
-            string code)
+        private static List<Token> TokenizeJson(string code)
         {
             var tokens = new List<Token>();
 
@@ -535,9 +481,7 @@ namespace Agent_MK_UI.Helpers
                     {
                         if (code[i] == '\\')
                         {
-                            i += Math.Min(
-                                2,
-                                code.Length - i);
+                            i += Math.Min(2, code.Length - i);
                             continue;
                         }
 
@@ -550,86 +494,62 @@ namespace Agent_MK_UI.Helpers
                         i++;
                     }
 
-                    string value =
-                        code[start..i];
+                    string value = code[start..i];
 
                     // JSON property names are usually before ':'.
                     int lookAhead = i;
 
-                    while (
-                        lookAhead < code.Length &&
-                        char.IsWhiteSpace(
-                            code[lookAhead]))
+                    while (lookAhead < code.Length && char.IsWhiteSpace(code[lookAhead]))
                     {
                         lookAhead++;
                     }
 
                     tokens.Add(
                         new Token(
-                            lookAhead < code.Length &&
-                            code[lookAhead] == ':'
+                            lookAhead < code.Length && code[lookAhead] == ':'
                                 ? TokenType.Attribute
                                 : TokenType.String,
-                            value));
+                            value
+                        )
+                    );
 
                     continue;
                 }
 
                 if (
-                    char.IsDigit(c) ||
-                    (c == '-' &&
-                     i + 1 < code.Length &&
-                     char.IsDigit(
-                         code[i + 1])))
+                    char.IsDigit(c)
+                    || (c == '-' && i + 1 < code.Length && char.IsDigit(code[i + 1]))
+                )
                 {
                     int start = i++;
 
-                    while (
-                        i < code.Length &&
-                        "0123456789.eE+-"
-                            .IndexOf(code[i]) >= 0)
+                    while (i < code.Length && "0123456789.eE+-".IndexOf(code[i]) >= 0)
                     {
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Number,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Number, code[start..i]));
 
                     continue;
                 }
 
-                string? keyword =
-                    TryReadWord(
-                        code,
-                        ref i);
+                string? keyword = TryReadWord(code, ref i);
 
                 if (keyword != null)
                 {
-                    TokenType type =
-                        keyword switch
-                        {
-                            "true" or
-                            "false" or
-                            "null"
-                                => TokenType.Keyword,
+                    TokenType type = keyword switch
+                    {
+                        "true" or "false" or "null" => TokenType.Keyword,
 
-                            _ => TokenType.Plain
-                        };
+                        _ => TokenType.Plain,
+                    };
 
-                    tokens.Add(
-                        new Token(
-                            type,
-                            keyword));
+                    tokens.Add(new Token(type, keyword));
 
                     continue;
                 }
 
-                tokens.Add(
-                    new Token(
-                        TokenType.Operator,
-                        c.ToString()));
+                tokens.Add(new Token(TokenType.Operator, c.ToString()));
 
                 i++;
             }
@@ -637,8 +557,7 @@ namespace Agent_MK_UI.Helpers
             return tokens;
         }
 
-        private static List<Token> TokenizeMarkup(
-            string code)
+        private static List<Token> TokenizeMarkup(string code)
         {
             var tokens = new List<Token>();
 
@@ -647,54 +566,37 @@ namespace Agent_MK_UI.Helpers
             while (i < code.Length)
             {
                 if (
-                    i + 3 < code.Length &&
-                    code[i] == '<' &&
-                    code[i + 1] == '!' &&
-                    code[i + 2] == '-' &&
-                    code[i + 3] == '-')
+                    i + 3 < code.Length
+                    && code[i] == '<'
+                    && code[i + 1] == '!'
+                    && code[i + 2] == '-'
+                    && code[i + 3] == '-'
+                )
                 {
-                    int end =
-                        code.IndexOf(
-                            "-->",
-                            i + 4,
-                            StringComparison.Ordinal);
+                    int end = code.IndexOf("-->", i + 4, StringComparison.Ordinal);
 
                     if (end < 0)
                         end = code.Length - 3;
 
                     end += 3;
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Comment,
-                            code[i..Math.Min(
-                                end,
-                                code.Length)]));
+                    tokens.Add(new Token(TokenType.Comment, code[i..Math.Min(end, code.Length)]));
 
-                    i = Math.Min(
-                        end,
-                        code.Length);
+                    i = Math.Min(end, code.Length);
 
                     continue;
                 }
 
                 if (code[i] == '<')
                 {
-                    int end =
-                        code.IndexOf(
-                            '>',
-                            i + 1);
+                    int end = code.IndexOf('>', i + 1);
 
                     if (end < 0)
                         end = code.Length - 1;
 
-                    string tag =
-                        code[i..(end + 1)];
+                    string tag = code[i..(end + 1)];
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Keyword,
-                            tag));
+                    tokens.Add(new Token(TokenType.Keyword, tag));
 
                     i = end + 1;
 
@@ -703,30 +605,23 @@ namespace Agent_MK_UI.Helpers
 
                 int start = i;
 
-                while (
-                    i < code.Length &&
-                    code[i] != '<')
+                while (i < code.Length && code[i] != '<')
                 {
                     i++;
                 }
 
                 if (i > start)
                 {
-                    tokens.Add(
-                        new Token(
-                            TokenType.Plain,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Plain, code[start..i]));
                 }
             }
 
             return tokens;
         }
 
-        private static List<Token> TokenizeCss(
-            string code)
+        private static List<Token> TokenizeCss(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.OrdinalIgnoreCase)
+            var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "important",
                 "inherit",
@@ -740,22 +635,20 @@ namespace Agent_MK_UI.Helpers
                 "grid",
                 "absolute",
                 "relative",
-                "fixed"
+                "fixed",
             };
 
             return TokenizeProgrammingLanguage(
                 code,
                 keywords,
-                new HashSet<string>(
-                    StringComparer.OrdinalIgnoreCase),
-                allowHashComments: false);
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                allowHashComments: false
+            );
         }
 
-        private static List<Token> TokenizeShell(
-            string code)
+        private static List<Token> TokenizeShell(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.Ordinal)
+            var keywords = new HashSet<string>(StringComparer.Ordinal)
             {
                 "if",
                 "then",
@@ -771,22 +664,20 @@ namespace Agent_MK_UI.Helpers
                 "in",
                 "function",
                 "select",
-                "time"
+                "time",
             };
 
             return TokenizeProgrammingLanguage(
                 code,
                 keywords,
-                new HashSet<string>(
-                    StringComparer.Ordinal),
-                allowHashComments: true);
+                new HashSet<string>(StringComparer.Ordinal),
+                allowHashComments: true
+            );
         }
 
-        private static List<Token> TokenizeSql(
-            string code)
+        private static List<Token> TokenizeSql(string code)
         {
-            var keywords = new HashSet<string>(
-                StringComparer.OrdinalIgnoreCase)
+            var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "SELECT",
                 "FROM",
@@ -826,37 +717,37 @@ namespace Agent_MK_UI.Helpers
                 "HAVING",
                 "LIMIT",
                 "OFFSET",
-                "DISTINCT"
+                "DISTINCT",
             };
 
             return TokenizeProgrammingLanguage(
                 code,
                 keywords,
-                new HashSet<string>(
-                    StringComparer.OrdinalIgnoreCase),
-                allowHashComments: false);
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                allowHashComments: false
+            );
         }
 
-        private static List<Token> TokenizeGeneric(
-            string code)
+        private static List<Token> TokenizeGeneric(string code)
         {
             return TokenizeProgrammingLanguage(
                 code,
                 new HashSet<string>(),
                 new HashSet<string>(),
-                allowHashComments: true);
+                allowHashComments: true
+            );
         }
 
         // ------------------------------------------------------------
         // Generic programming tokenizer
         // ------------------------------------------------------------
 
-        private static List<Token>
-            TokenizeProgrammingLanguage(
-                string code,
-                HashSet<string> keywords,
-                HashSet<string> types,
-                bool allowHashComments)
+        private static List<Token> TokenizeProgrammingLanguage(
+            string code,
+            HashSet<string> keywords,
+            HashSet<string> types,
+            bool allowHashComments
+        )
         {
             var tokens = new List<Token>();
 
@@ -874,17 +765,12 @@ namespace Agent_MK_UI.Helpers
                 {
                     int start = i;
 
-                    while (
-                        i < code.Length &&
-                        char.IsWhiteSpace(code[i]))
+                    while (i < code.Length && char.IsWhiteSpace(code[i]))
                     {
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Plain,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Plain, code[start..i]));
 
                     continue;
                 }
@@ -893,27 +779,18 @@ namespace Agent_MK_UI.Helpers
                 // // comment
                 // ----------------------------------------------------
 
-                if (
-                    c == '/' &&
-                    i + 1 < code.Length &&
-                    code[i + 1] == '/')
+                if (c == '/' && i + 1 < code.Length && code[i + 1] == '/')
                 {
                     int start = i;
 
                     i += 2;
 
-                    while (
-                        i < code.Length &&
-                        code[i] != '\r' &&
-                        code[i] != '\n')
+                    while (i < code.Length && code[i] != '\r' && code[i] != '\n')
                     {
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Comment,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Comment, code[start..i]));
 
                     continue;
                 }
@@ -922,19 +799,13 @@ namespace Agent_MK_UI.Helpers
                 // /* comment */
                 // ----------------------------------------------------
 
-                if (
-                    c == '/' &&
-                    i + 1 < code.Length &&
-                    code[i + 1] == '*')
+                if (c == '/' && i + 1 < code.Length && code[i + 1] == '*')
                 {
                     int start = i;
 
                     i += 2;
 
-                    while (
-                        i + 1 < code.Length &&
-                        !(code[i] == '*' &&
-                          code[i + 1] == '/'))
+                    while (i + 1 < code.Length && !(code[i] == '*' && code[i + 1] == '/'))
                     {
                         i++;
                     }
@@ -942,10 +813,7 @@ namespace Agent_MK_UI.Helpers
                     if (i + 1 < code.Length)
                         i += 2;
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Comment,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Comment, code[start..i]));
 
                     continue;
                 }
@@ -954,24 +822,16 @@ namespace Agent_MK_UI.Helpers
                 // # comment
                 // ----------------------------------------------------
 
-                if (
-                    allowHashComments &&
-                    c == '#')
+                if (allowHashComments && c == '#')
                 {
                     int start = i++;
 
-                    while (
-                        i < code.Length &&
-                        code[i] != '\r' &&
-                        code[i] != '\n')
+                    while (i < code.Length && code[i] != '\r' && code[i] != '\n')
                     {
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Comment,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Comment, code[start..i]));
 
                     continue;
                 }
@@ -980,10 +840,7 @@ namespace Agent_MK_UI.Helpers
                 // Strings
                 // ----------------------------------------------------
 
-                if (
-                    c == '"' ||
-                    c == '\'' ||
-                    c == '`')
+                if (c == '"' || c == '\'' || c == '`')
                 {
                     char quote = c;
                     int start = i++;
@@ -992,9 +849,7 @@ namespace Agent_MK_UI.Helpers
                     {
                         if (code[i] == '\\')
                         {
-                            i += Math.Min(
-                                2,
-                                code.Length - i);
+                            i += Math.Min(2, code.Length - i);
                             continue;
                         }
 
@@ -1007,10 +862,7 @@ namespace Agent_MK_UI.Helpers
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.String,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.String, code[start..i]));
 
                     continue;
                 }
@@ -1020,31 +872,27 @@ namespace Agent_MK_UI.Helpers
                 // ----------------------------------------------------
 
                 if (
-                    char.IsDigit(c) ||
-                    (c == '.' &&
-                     i + 1 < code.Length &&
-                     char.IsDigit(code[i + 1])))
+                    char.IsDigit(c)
+                    || (c == '.' && i + 1 < code.Length && char.IsDigit(code[i + 1]))
+                )
                 {
                     int start = i++;
 
                     while (
-                        i < code.Length &&
-                        (
-                            char.IsLetterOrDigit(
-                                code[i]) ||
-                            code[i] == '.' ||
-                            code[i] == '_' ||
-                            code[i] == 'x' ||
-                            code[i] == 'X'
-                        ))
+                        i < code.Length
+                        && (
+                            char.IsLetterOrDigit(code[i])
+                            || code[i] == '.'
+                            || code[i] == '_'
+                            || code[i] == 'x'
+                            || code[i] == 'X'
+                        )
+                    )
                     {
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Number,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Number, code[start..i]));
 
                     continue;
                 }
@@ -1053,26 +901,16 @@ namespace Agent_MK_UI.Helpers
                 // Preprocessor / directives
                 // ----------------------------------------------------
 
-                if (
-                    c == '#' &&
-                    (i == 0 ||
-                     code[i - 1] == '\n' ||
-                     code[i - 1] == '\r'))
+                if (c == '#' && (i == 0 || code[i - 1] == '\n' || code[i - 1] == '\r'))
                 {
                     int start = i++;
 
-                    while (
-                        i < code.Length &&
-                        code[i] != '\r' &&
-                        code[i] != '\n')
+                    while (i < code.Length && code[i] != '\r' && code[i] != '\n')
                     {
                         i++;
                     }
 
-                    tokens.Add(
-                        new Token(
-                            TokenType.Preprocessor,
-                            code[start..i]));
+                    tokens.Add(new Token(TokenType.Preprocessor, code[start..i]));
 
                     continue;
                 }
@@ -1081,64 +919,43 @@ namespace Agent_MK_UI.Helpers
                 // Identifier / keyword / type / function
                 // ----------------------------------------------------
 
-                if (
-                    char.IsLetter(c) ||
-                    c == '_' ||
-                    c == '$')
+                if (char.IsLetter(c) || c == '_' || c == '$')
                 {
                     int start = i++;
 
                     while (
-                        i < code.Length &&
-                        (
-                            char.IsLetterOrDigit(
-                                code[i]) ||
-                            code[i] == '_' ||
-                            code[i] == '$'
-                        ))
+                        i < code.Length
+                        && (char.IsLetterOrDigit(code[i]) || code[i] == '_' || code[i] == '$')
+                    )
                     {
                         i++;
                     }
 
-                    string word =
-                        code[start..i];
+                    string word = code[start..i];
 
                     if (keywords.Contains(word))
                     {
-                        tokens.Add(
-                            new Token(
-                                TokenType.Keyword,
-                                word));
+                        tokens.Add(new Token(TokenType.Keyword, word));
                     }
                     else if (types.Contains(word))
                     {
-                        tokens.Add(
-                            new Token(
-                                TokenType.Type,
-                                word));
+                        tokens.Add(new Token(TokenType.Type, word));
                     }
                     else
                     {
                         int lookAhead = i;
 
-                        while (
-                            lookAhead < code.Length &&
-                            char.IsWhiteSpace(
-                                code[lookAhead]))
+                        while (lookAhead < code.Length && char.IsWhiteSpace(code[lookAhead]))
                         {
                             lookAhead++;
                         }
 
                         TokenType type =
-                            lookAhead < code.Length &&
-                            code[lookAhead] == '('
+                            lookAhead < code.Length && code[lookAhead] == '('
                                 ? TokenType.Function
                                 : TokenType.Plain;
 
-                        tokens.Add(
-                            new Token(
-                                type,
-                                word));
+                        tokens.Add(new Token(type, word));
                     }
 
                     continue;
@@ -1148,10 +965,7 @@ namespace Agent_MK_UI.Helpers
                 // Operators / punctuation
                 // ----------------------------------------------------
 
-                tokens.Add(
-                    new Token(
-                        TokenType.Operator,
-                        c.ToString()));
+                tokens.Add(new Token(TokenType.Operator, c.ToString()));
 
                 i++;
             }
@@ -1163,40 +977,24 @@ namespace Agent_MK_UI.Helpers
         // Helpers
         // ------------------------------------------------------------
 
-        private static string NormalizeLanguage(
-            string? language)
+        private static string NormalizeLanguage(string? language)
         {
             if (string.IsNullOrWhiteSpace(language))
                 return string.Empty;
 
-            return language
-                .Trim()
-                .TrimStart('.')
-                .ToLowerInvariant();
+            return language.Trim().TrimStart('.').ToLowerInvariant();
         }
 
-        private static string? TryReadWord(
-            string code,
-            ref int index)
+        private static string? TryReadWord(string code, ref int index)
         {
-            if (
-                index >= code.Length ||
-                !(
-                    char.IsLetter(code[index]) ||
-                    code[index] == '_'))
+            if (index >= code.Length || !(char.IsLetter(code[index]) || code[index] == '_'))
             {
                 return null;
             }
 
             int start = index++;
 
-            while (
-                index < code.Length &&
-                (
-                    char.IsLetterOrDigit(
-                        code[index]) ||
-                    code[index] == '_'
-                ))
+            while (index < code.Length && (char.IsLetterOrDigit(code[index]) || code[index] == '_'))
             {
                 index++;
             }
@@ -1204,21 +1002,16 @@ namespace Agent_MK_UI.Helpers
             return code[start..index];
         }
 
-        private static Brush Brush(
-            string hex)
+        private static Brush Brush(string hex)
         {
             return new SolidColorBrush(
                 ColorHelper.FromArgb(
                     255,
-                    Convert.ToByte(
-                        hex.Substring(1, 2),
-                        16),
-                    Convert.ToByte(
-                        hex.Substring(3, 2),
-                        16),
-                    Convert.ToByte(
-                        hex.Substring(5, 2),
-                        16)));
+                    Convert.ToByte(hex.Substring(1, 2), 16),
+                    Convert.ToByte(hex.Substring(3, 2), 16),
+                    Convert.ToByte(hex.Substring(5, 2), 16)
+                )
+            );
         }
     }
 }

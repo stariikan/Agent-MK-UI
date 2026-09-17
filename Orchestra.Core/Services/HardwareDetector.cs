@@ -32,10 +32,7 @@ namespace Orchestra.Core.Services
 
         public HardwareProfile Detect()
         {
-            var profile = new HardwareProfile
-            {
-                RamGb = GetTotalRamGb(),
-            };
+            var profile = new HardwareProfile { RamGb = GetTotalRamGb() };
 
             var nvidia = TryDetectNvidia();
             if (nvidia != null)
@@ -124,7 +121,8 @@ namespace Orchestra.Core.Services
                 };
 
                 using var proc = Process.Start(psi);
-                if (proc == null) return null;
+                if (proc == null)
+                    return null;
 
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit(5000);
@@ -139,10 +137,18 @@ namespace Orchestra.Core.Services
                 foreach (var rawLine in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var parts = rawLine.Split(',');
-                    if (parts.Length != 2) continue;
+                    if (parts.Length != 2)
+                        continue;
 
                     string name = parts[0].Trim();
-                    if (!double.TryParse(parts[1].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double mib))
+                    if (
+                        !double.TryParse(
+                            parts[1].Trim(),
+                            NumberStyles.Any,
+                            CultureInfo.InvariantCulture,
+                            out double mib
+                        )
+                    )
                     {
                         continue;
                     }
@@ -159,7 +165,9 @@ namespace Orchestra.Core.Services
             catch (Exception ex)
             {
                 // Not found / not an NVIDIA machine -- expected on most systems.
-                _logger.LogInfo($"nvidia-smi not usable ({ex.GetType().Name}); trying WMI fallback for GPU detection.");
+                _logger.LogInfo(
+                    $"nvidia-smi not usable ({ex.GetType().Name}); trying WMI fallback for GPU detection."
+                );
                 return null;
             }
         }
@@ -173,7 +181,8 @@ namespace Orchestra.Core.Services
             try
             {
                 using var searcher = new System.Management.ManagementObjectSearcher(
-                    "SELECT Name, AdapterRAM FROM Win32_VideoController");
+                    "SELECT Name, AdapterRAM FROM Win32_VideoController"
+                );
 
                 (string Vendor, string Name, double? VramGb)? best = null;
 
@@ -189,9 +198,12 @@ namespace Orchestra.Core.Services
 
                     string vendor = "unknown";
                     string lower = name.ToLowerInvariant();
-                    if (lower.Contains("nvidia")) vendor = "nvidia";
-                    else if (lower.Contains("amd") || lower.Contains("radeon")) vendor = "amd";
-                    else if (lower.Contains("intel")) vendor = "intel";
+                    if (lower.Contains("nvidia"))
+                        vendor = "nvidia";
+                    else if (lower.Contains("amd") || lower.Contains("radeon"))
+                        vendor = "amd";
+                    else if (lower.Contains("intel"))
+                        vendor = "intel";
 
                     double? vramGb = null;
                     if (ramObj != null)

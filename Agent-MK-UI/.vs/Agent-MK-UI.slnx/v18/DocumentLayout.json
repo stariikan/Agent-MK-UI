@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\settingsview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:settingsview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\setupwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:setupwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\settingsview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:settingsview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -19,12 +27,51 @@
       "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\settingsview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:settingsview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\settingsview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:settingsview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\agent-mk-ui.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:agent-mk-ui.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Windows\\Temp\\VSProjectConfigWarningLog_962b5712-5632-4b6b-a880-04153d311f41.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\agent-mk-ui.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:agent-mk-ui.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Windows\\Temp\\VSProjectConfigWarningLog_cf14ef10-8bf2-4ff2-911e-859c23df6190.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{35888D62-06AB-C65F-F432-3852C21A9854}|..\\Orchestra.Infrastructure\\Orchestra.Infrastructure.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.infrastructure\\orchestra.infrastructure.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\orchestra.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\helpers\\codesnippethelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:helpers\\codesnippethelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\models\\agentmessage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\models\\hardwareprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\services\\agentorchestrator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\models\\setupstate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\services\\setuporchestrator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
@@ -36,14 +83,7 @@
       "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\services\\modelrecommender.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\services\\agentorchestrator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\models\\popularmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\agent-mk-ui\\helpers\\codesnippethelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F0E2BE03-C23B-6B5A-24BB-A76EEC2B4C68}|Agent-MK-UI.csproj|solutionrelative:helpers\\codesnippethelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6D5D9B22-4AC0-8512-5C1E-1B713E0A99E7}|..\\Orchestra.Core\\Orchestra.Core.csproj|c:\\users\\amemo\\source\\repos\\agent-mk-ui\\orchestra.core\\models\\modeltier.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
@@ -60,42 +100,30 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SetupWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SetupWindow.xaml.cs",
-              "RelativeDocumentMoniker": "SetupWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SetupWindow.xaml.cs",
-              "RelativeToolTip": "SetupWindow.xaml.cs",
-              "ViewState": "AgIAAEoAAAAAAAAAAAAmwG4AAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T07:42:01.307Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\MainWindow.xaml",
               "RelativeDocumentMoniker": "MainWindow.xaml",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
+              "ViewState": "AgIAAAIBAAAAAAAAAAAmwCABAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2026-09-14T04:24:55.095Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "SettingsView.xaml",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SettingsView.xaml",
               "RelativeDocumentMoniker": "SettingsView.xaml",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SettingsView.xaml",
               "RelativeToolTip": "SettingsView.xaml",
-              "ViewState": "AgIAAFEAAAAAAAAAAAAAAHUAAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAG8AAAAAAAAAAAAuwJgAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2026-09-14T04:39:34.707Z",
               "EditorCaption": ""
@@ -103,127 +131,304 @@
             {
               "$type": "Document",
               "DocumentIndex": 8,
-              "Title": "ModelRecommender.cs",
-              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\ModelRecommender.cs",
-              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Services\\ModelRecommender.cs",
-              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\ModelRecommender.cs",
-              "RelativeToolTip": "..\\Orchestra.Core\\Services\\ModelRecommender.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAAAAoAAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T07:42:26.747Z"
+              "Title": "App.xaml",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\App.xaml",
+              "RelativeDocumentMoniker": "App.xaml",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\App.xaml",
+              "RelativeToolTip": "App.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-16T06:42:53.528Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "PythonEnvironmentManager.cs",
-              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
-              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
-              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
-              "RelativeToolTip": "..\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
-              "ViewState": "AgIAAEoAAAAAAAAAAAAAAGcAAAAJAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "SetupWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SetupWindow.xaml.cs",
+              "RelativeDocumentMoniker": "SetupWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SetupWindow.xaml.cs",
+              "RelativeToolTip": "SetupWindow.xaml.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAIwCsAAABbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T07:54:06.954Z"
+              "WhenOpened": "2026-09-14T07:42:01.307Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 15,
+              "Title": "CodeSnippetHelper.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Helpers\\CodeSnippetHelper.cs",
+              "RelativeDocumentMoniker": "Helpers\\CodeSnippetHelper.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Helpers\\CodeSnippetHelper.cs",
+              "RelativeToolTip": "Helpers\\CodeSnippetHelper.cs",
+              "ViewState": "AgIAAFsCAAAAAAAAAAAiwAcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-14T04:15:28.778Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SettingsView.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SettingsView.xaml.cs",
+              "RelativeDocumentMoniker": "SettingsView.xaml.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SettingsView.xaml.cs",
+              "RelativeToolTip": "SettingsView.xaml.cs",
+              "ViewState": "AgIAADYBAAAAAAAAAAAgwFUBAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-14T04:52:41.444Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "SetupWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SetupWindow.xaml",
               "RelativeDocumentMoniker": "SetupWindow.xaml",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SetupWindow.xaml",
               "RelativeToolTip": "SetupWindow.xaml",
-              "ViewState": "AgIAAFsAAAAAAAAAAAAswHAAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAALQAAAAAAAAAAAAuwN0AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2026-09-14T04:58:24.165Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SettingsView.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SettingsView.xaml.cs",
-              "RelativeDocumentMoniker": "SettingsView.xaml.cs",
-              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\SettingsView.xaml.cs",
-              "RelativeToolTip": "SettingsView.xaml.cs",
-              "ViewState": "AgIAAPQAAAAAAAAAAAAiwBcBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T04:52:41.444Z"
+              "DocumentIndex": 12,
+              "Title": "VSProjectConfigWarningLog_cf14ef10-8bf2-4ff2-911e-859c23df6190.txt",
+              "DocumentMoniker": "C:\\Windows\\Temp\\VSProjectConfigWarningLog_cf14ef10-8bf2-4ff2-911e-859c23df6190.txt",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Windows\\Temp\\VSProjectConfigWarningLog_cf14ef10-8bf2-4ff2-911e-859c23df6190.txt",
+              "ToolTip": "C:\\Windows\\Temp\\VSProjectConfigWarningLog_cf14ef10-8bf2-4ff2-911e-859c23df6190.txt",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\Windows\\Temp\\VSProjectConfigWarningLog_cf14ef10-8bf2-4ff2-911e-859c23df6190.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-09-16T06:23:19.97Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 7,
+              "Title": "Agent-MK-UI.csproj",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Agent-MK-UI.csproj",
+              "RelativeDocumentMoniker": "Agent-MK-UI.csproj",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Agent-MK-UI.csproj",
+              "RelativeToolTip": "Agent-MK-UI.csproj",
+              "ViewState": "AgIAAFcAAAAAAAAAAAAAAHQAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-09-16T04:24:57.461Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\App.xaml.cs",
+              "RelativeDocumentMoniker": "App.xaml.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\App.xaml.cs",
+              "RelativeToolTip": "App.xaml.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAiwNMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T06:02:11.132Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\MainWindow.xaml.cs",
               "RelativeToolTip": "MainWindow.xaml.cs",
-              "ViewState": "AgIAAEIHAAAAAAAAAAAqwGAHAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADUAAAAAAAAAAAAkwFcAAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T04:26:05.012Z"
+              "WhenOpened": "2026-09-14T04:26:05.012Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "ModelRecommender.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\ModelRecommender.cs",
+              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Services\\ModelRecommender.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\ModelRecommender.cs",
+              "RelativeToolTip": "..\\Orchestra.Core\\Services\\ModelRecommender.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAIBJwAoAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-14T07:42:26.747Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "SetupState.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\SetupState.cs",
+              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Models\\SetupState.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\SetupState.cs",
+              "RelativeToolTip": "..\\Orchestra.Core\\Models\\SetupState.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T06:01:58.739Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "VSProjectConfigWarningLog_962b5712-5632-4b6b-a880-04153d311f41.txt",
+              "DocumentMoniker": "C:\\Windows\\Temp\\VSProjectConfigWarningLog_962b5712-5632-4b6b-a880-04153d311f41.txt",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Windows\\Temp\\VSProjectConfigWarningLog_962b5712-5632-4b6b-a880-04153d311f41.txt",
+              "ToolTip": "C:\\Windows\\Temp\\VSProjectConfigWarningLog_962b5712-5632-4b6b-a880-04153d311f41.txt",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\Windows\\Temp\\VSProjectConfigWarningLog_962b5712-5632-4b6b-a880-04153d311f41.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-09-16T06:25:12.102Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 9,
+              "Title": "Microsoft.Common.CurrentVersion.targets",
+              "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
+              "ViewState": "AgIAAP0UAAAAAAAAAAAiwBQVAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
+              "WhenOpened": "2026-09-16T06:26:56.056Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Orchestra.Core.csproj",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Orchestra.Core.csproj",
+              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Orchestra.Core.csproj",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Orchestra.Core.csproj",
+              "RelativeToolTip": "..\\Orchestra.Core\\Orchestra.Core.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-09-16T06:17:52.677Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Agent-MK-UI",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Agent-MK-UI.csproj",
+              "RelativeDocumentMoniker": "Agent-MK-UI.csproj",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Agent-MK-UI.csproj",
+              "RelativeToolTip": "Agent-MK-UI.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-09-16T05:07:40.791Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Orchestra.Infrastructure.csproj",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Infrastructure\\Orchestra.Infrastructure.csproj",
+              "RelativeDocumentMoniker": "..\\Orchestra.Infrastructure\\Orchestra.Infrastructure.csproj",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Infrastructure\\Orchestra.Infrastructure.csproj",
+              "RelativeToolTip": "..\\Orchestra.Infrastructure\\Orchestra.Infrastructure.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-09-16T06:18:03.874Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "HardwareProfile.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\HardwareProfile.cs",
+              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Models\\HardwareProfile.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\HardwareProfile.cs",
+              "RelativeToolTip": "..\\Orchestra.Core\\Models\\HardwareProfile.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T06:02:26.924Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "AgentMessage.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\AgentMessage.cs",
+              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Models\\AgentMessage.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\AgentMessage.cs",
+              "RelativeToolTip": "..\\Orchestra.Core\\Models\\AgentMessage.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAYwD0AAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-16T06:02:28.446Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "PythonEnvironmentManager.cs",
+              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
+              "RelativeDocumentMoniker": "..\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
+              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
+              "RelativeToolTip": "..\\Orchestra.Core\\Services\\PythonEnvironmentManager.cs",
+              "ViewState": "AgIAAEcAAAAAAAAAAIBJwGcAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-14T07:54:06.954Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
               "Title": "AgentOrchestrator.cs",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\AgentOrchestrator.cs",
               "RelativeDocumentMoniker": "..\\Orchestra.Core\\Services\\AgentOrchestrator.cs",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\AgentOrchestrator.cs",
               "RelativeToolTip": "..\\Orchestra.Core\\Services\\AgentOrchestrator.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAAAEwC4AAABNAAAAAAAAAA==",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAjwC4AAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T07:42:22.335Z"
+              "WhenOpened": "2026-09-14T07:42:22.335Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 20,
               "Title": "SetupOrchestrator.cs",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\SetupOrchestrator.cs",
               "RelativeDocumentMoniker": "..\\Orchestra.Core\\Services\\SetupOrchestrator.cs",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Services\\SetupOrchestrator.cs",
               "RelativeToolTip": "..\\Orchestra.Core\\Services\\SetupOrchestrator.cs",
-              "ViewState": "AgIAACwAAAAAAAAAAAAcwPQAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAACwAAAAAAAAAAAAcwPQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T07:53:11.227Z"
+              "WhenOpened": "2026-09-14T07:53:11.227Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "CodeSnippetHelper.cs",
-              "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Helpers\\CodeSnippetHelper.cs",
-              "RelativeDocumentMoniker": "Helpers\\CodeSnippetHelper.cs",
-              "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Helpers\\CodeSnippetHelper.cs",
-              "RelativeToolTip": "Helpers\\CodeSnippetHelper.cs",
-              "ViewState": "AgIAALEAAAAAAAAAAAAAAMMAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T04:15:28.778Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 23,
               "Title": "PopularModel.cs",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\PopularModel.cs",
               "RelativeDocumentMoniker": "..\\Orchestra.Core\\Models\\PopularModel.cs",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\PopularModel.cs",
               "RelativeToolTip": "..\\Orchestra.Core\\Models\\PopularModel.cs",
-              "ViewState": "AgIAAB0AAAAAAAAAAAAAADAAAABFAAAAAAAAAA==",
+              "ViewState": "AgIAABoAAAAAAAAAAABQwDAAAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T05:33:12.402Z"
+              "WhenOpened": "2026-09-14T05:33:12.402Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 25,
               "Title": "SyntaxHighlighter.cs",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Helpers\\SyntaxHighlighter.cs",
               "RelativeDocumentMoniker": "Helpers\\SyntaxHighlighter.cs",
               "ToolTip": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Agent-MK-UI\\Helpers\\SyntaxHighlighter.cs",
               "RelativeToolTip": "Helpers\\SyntaxHighlighter.cs",
-              "ViewState": "AgIAAIcEAAAAAAAAAAAiwMcEAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAPYDAAAAAAAAAIBJwPkDAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T05:13:08.381Z"
+              "WhenOpened": "2026-09-14T05:13:08.381Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 24,
               "Title": "ModelTier.cs",
               "DocumentMoniker": "C:\\Users\\Amemo\\source\\repos\\Agent-MK-UI\\Orchestra.Core\\Models\\ModelTier.cs",
               "RelativeDocumentMoniker": "..\\Orchestra.Core\\Models\\ModelTier.cs",
@@ -231,7 +436,8 @@
               "RelativeToolTip": "..\\Orchestra.Core\\Models\\ModelTier.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-14T05:33:10.909Z"
+              "WhenOpened": "2026-09-14T05:33:10.909Z",
+              "EditorCaption": ""
             }
           ]
         }

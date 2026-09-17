@@ -18,7 +18,7 @@ namespace Agent_MK_UI
         private readonly System.Collections.Concurrent.ConcurrentQueue<string> _logBuffer = new();
         private readonly System.Collections.Generic.List<string> _recentLogs = new(20);
         private DispatcherTimer? _logFlushTimer;
-
+        private string _appDataFolder = string.Empty;
         // 2. Architectural Event for Decoupling
         // This allows the UserControl to shout "Close me!" without knowing about MainWindow.
         public event EventHandler? CloseRequested;
@@ -28,7 +28,7 @@ namespace Agent_MK_UI
             this.InitializeComponent();
             _logFlushTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(100) // Flush 10 times a second
+                Interval = TimeSpan.FromMilliseconds(100), // Flush 10 times a second
             };
             _logFlushTimer.Tick += (s, e) => FlushLogBuffer();
             _logFlushTimer.Start();
@@ -37,14 +37,13 @@ namespace Agent_MK_UI
             this.Unloaded += (s, args) => _logFlushTimer?.Stop();
 
             _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
-            _ollamaManager = ollamaManager ?? throw new ArgumentNullException(nameof(ollamaManager));
+            _ollamaManager =
+                ollamaManager ?? throw new ArgumentNullException(nameof(ollamaManager));
 
-            NewModelComboBox.ItemsSource = PopularModelCatalog.Models.Select(m => m.OllamaTag).ToList();
-            AgentProfileComboBox.ItemsSource = new[] {
-                "Auto (recommended)",
-                "Fast",
-                "Deep",
-            };
+            NewModelComboBox.ItemsSource = PopularModelCatalog
+                .Models.Select(m => m.OllamaTag)
+                .ToList();
+            AgentProfileComboBox.ItemsSource = new[] { "Auto (recommended)", "Fast", "Deep" };
 
             // 4. ARCHITECTURAL FIX: UserControl has its own Loaded event directly
             this.Loaded += SettingsView_Loaded;
@@ -58,6 +57,11 @@ namespace Agent_MK_UI
 
             await RefreshInstalledModelsAsync();
             InstalledModelsComboBox.SelectedItem = state.ChosenModel;
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            _appDataFolder = System.IO.Path.Combine(localAppData, "AgentMK");
+            string runtimeDir = System.IO.Path.Combine(_appDataFolder, "AI_Runtime");
+
+            AppDataPathText.Text = $"Python Environment: {runtimeDir}\nDatabase: {System.IO.Path.Combine(_appDataFolder, "chats.sqlite3")}";
         }
 
         // 5. Fire the event when the Back button is clicked
@@ -75,11 +79,14 @@ namespace Agent_MK_UI
         private void NewModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             string? selectedTag = NewModelComboBox.SelectedItem?.ToString();
-            var knownModel = PopularModelCatalog.Models.FirstOrDefault(m => m.OllamaTag == selectedTag);
+            var knownModel = PopularModelCatalog.Models.FirstOrDefault(m =>
+                m.OllamaTag == selectedTag
+            );
 
             if (knownModel != null)
             {
-                NewModelExplanationText.Text = $"Size: {knownModel.ParamSize} | VRAM needed: ~{knownModel.ApproxVramGb}GB\n{knownModel.Description}";
+                NewModelExplanationText.Text =
+                    $"Size: {knownModel.ParamSize} | VRAM needed: ~{knownModel.ApproxVramGb}GB\n{knownModel.Description}";
                 NewModelExplanationText.Visibility = Visibility.Visible;
             }
             else
@@ -97,7 +104,7 @@ namespace Agent_MK_UI
                 Content = content,
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "Cancel",
-                XamlRoot = this.XamlRoot // FIXED: UserControls access XamlRoot directly
+                XamlRoot = this.XamlRoot, // FIXED: UserControls access XamlRoot directly
             };
             var result = await dialog.ShowAsync();
             return result == ContentDialogResult.Primary;
@@ -110,29 +117,33 @@ namespace Agent_MK_UI
                 Title = title,
                 Content = content,
                 CloseButtonText = "OK",
-                XamlRoot = this.XamlRoot // FIXED: UserControls access XamlRoot directly
+                XamlRoot = this.XamlRoot, // FIXED: UserControls access XamlRoot directly
             };
             await dialog.ShowAsync();
         }
 
         // --- Button Handlers ---
-        private static string ProfileDisplay(string profile) => profile switch
-        {
-            "fast" => "Fast",
-            "deep" => "Deep",
-            _ => "Auto (recommended)",
-        };
+        private static string ProfileDisplay(string profile) =>
+            profile switch
+            {
+                "fast" => "Fast",
+                "deep" => "Deep",
+                _ => "Auto (recommended)",
+            };
 
-        private static string ProfileValue(string display) => display switch
-        {
-            "Fast" => "fast",
-            "Deep" => "deep",
-            _ => "auto",
-        };
+        private static string ProfileValue(string display) =>
+            display switch
+            {
+                "Fast" => "fast",
+                "Deep" => "deep",
+                _ => "auto",
+            };
 
         private void SetAgentProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            string profile = ProfileValue(AgentProfileComboBox.SelectedItem?.ToString() ?? "Auto (recommended)");
+            string profile = ProfileValue(
+                AgentProfileComboBox.SelectedItem?.ToString() ?? "Auto (recommended)"
+            );
             _orchestrator.SetAgentProfile(profile);
             AppendLog($"Agent behavior set to '{ProfileDisplay(profile)}'.");
         }
@@ -164,14 +175,17 @@ namespace Agent_MK_UI
             // Lock UI & Start Progress
             PullButton.IsEnabled = false;
             NewModelComboBox.IsEnabled = false;
-            if (SettingsProgressBar != null) SettingsProgressBar.IsIndeterminate = true;
+            if (SettingsProgressBar != null)
+                SettingsProgressBar.IsIndeterminate = true;
 
             var progress = new Progress<string>(AppendLog);
 
             try
             {
                 bool ok = await _ollamaManager.PullModelAsync(model, progress);
-                AppendLog(ok ? $"Pulled '{model}' successfully." : $"[error] Failed to pull '{model}'.");
+                AppendLog(
+                    ok ? $"Pulled '{model}' successfully." : $"[error] Failed to pull '{model}'."
+                );
                 await RefreshInstalledModelsAsync();
             }
             catch (Exception ex)
@@ -181,7 +195,8 @@ namespace Agent_MK_UI
             finally
             {
                 // Unlock UI & Stop Progress
-                if (SettingsProgressBar != null) SettingsProgressBar.IsIndeterminate = false;
+                if (SettingsProgressBar != null)
+                    SettingsProgressBar.IsIndeterminate = false;
                 PullButton.IsEnabled = true;
                 NewModelComboBox.IsEnabled = true;
             }
@@ -198,14 +213,19 @@ namespace Agent_MK_UI
 
             bool confirmed = await ShowConfirmationDialogAsync(
                 "Delete model",
-                $"Are you sure you want to delete '{model}' from disk? This cannot be undone.");
+                $"Are you sure you want to delete '{model}' from disk? This cannot be undone."
+            );
 
-            if (!confirmed) return;
+            if (!confirmed)
+                return;
 
             DeleteModelButton.IsEnabled = false;
             try
             {
-                bool ok = await _ollamaManager.DeleteModelAsync(model, new Progress<string>(AppendLog));
+                bool ok = await _ollamaManager.DeleteModelAsync(
+                    model,
+                    new Progress<string>(AppendLog)
+                );
                 AppendLog(ok ? $"Deleted '{model}'." : $"[error] Failed to delete '{model}'.");
 
                 await RefreshInstalledModelsAsync();
@@ -225,10 +245,12 @@ namespace Agent_MK_UI
         {
             bool confirmed = await ShowConfirmationDialogAsync(
                 "Reset App Environment",
-                "This deletes Agent-MK's isolated Python environment (.venv) and your setup state.\n\n" +
-                "Your downloaded models, system Python, and the Ollama engine will NOT be touched. Continue?");
+                "This deletes Agent-MK's isolated Python environment (.venv) and your setup state.\n\n"
+                    + "Your downloaded models, system Python, and the Ollama engine will NOT be touched. Continue?"
+            );
 
-            if (!confirmed) return;
+            if (!confirmed)
+                return;
 
             try
             {
@@ -246,23 +268,29 @@ namespace Agent_MK_UI
         {
             bool confirmed = await ShowConfirmationDialogAsync(
                 "Factory Reset Agent-MK",
-                "This will delete:\n" +
-                "1. All models downloaded via Agent-MK.\n" +
-                "2. The Agent-MK isolated Python environment.\n" +
-                "3. All setup state.\n\n" +
-                "Note: This does NOT uninstall the Ollama engine or system Python from your PC. Continue?");
+                "This will delete:\n"
+                    + "1. All models downloaded via Agent-MK.\n"
+                    + "2. The Agent-MK isolated Python environment.\n"
+                    + "3. All setup state.\n\n"
+                    + "Note: This does NOT uninstall the Ollama engine or system Python from your PC. Continue?"
+            );
 
-            if (!confirmed) return;
+            if (!confirmed)
+                return;
 
             // Lock UI & Start Progress
             WipeEverythingButton.IsEnabled = false;
-            if (SettingsProgressBar != null) SettingsProgressBar.IsIndeterminate = true;
+            if (SettingsProgressBar != null)
+                SettingsProgressBar.IsIndeterminate = true;
 
             try
             {
                 await _orchestrator.WipeEverythingAsync(new Progress<string>(AppendLog));
                 await RefreshInstalledModelsAsync();
-                await ShowMessageDialogAsync("Done", "Agent-MK has been factory reset. Please restart the application.");
+                await ShowMessageDialogAsync(
+                    "Done",
+                    "Agent-MK has been factory reset. Please restart the application."
+                );
             }
             catch (Exception ex)
             {
@@ -271,7 +299,8 @@ namespace Agent_MK_UI
             finally
             {
                 // Unlock UI & Stop Progress
-                if (SettingsProgressBar != null) SettingsProgressBar.IsIndeterminate = false;
+                if (SettingsProgressBar != null)
+                    SettingsProgressBar.IsIndeterminate = false;
                 WipeEverythingButton.IsEnabled = true;
             }
         }
@@ -283,7 +312,8 @@ namespace Agent_MK_UI
 
         private void FlushLogBuffer()
         {
-            if (_logBuffer.IsEmpty) return;
+            if (_logBuffer.IsEmpty)
+                return;
 
             bool newLinesAdded = false;
             while (_logBuffer.TryDequeue(out var line))
@@ -303,6 +333,12 @@ namespace Agent_MK_UI
                 LogScrollViewer.ChangeView(null, LogScrollViewer.ScrollableHeight, null);
             }
         }
+        private async void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (System.IO.Directory.Exists(_appDataFolder))
+            {
+                await Windows.System.Launcher.LaunchFolderPathAsync(_appDataFolder);
+            }
+        }
     }
 }
-
