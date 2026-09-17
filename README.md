@@ -1,7 +1,7 @@
 # Agent-MK
 **Agent-MK is a local AI software-engineering assistant for Windows.**
 
-Download the latest version: https://drive.google.com/file/d/1LY5ejbkjhlbZaDo3n1OXARJ4qJhgUGmw/view?usp=drive_link
+[Download v0.15 for Windows](https://drive.google.com/file/d/1LY5ejbkjhlbZaDo3n1OXARJ4qJhgUGmw/view?usp=drive_link)
 
 It combines a native **WinUI 3 desktop interface** with a **Python-based agent runtime** and local LLM backends such as **Ollama**. The goal is not just to provide a chat window, but to give a local model access to a real project workspace where it can inspect files, search code, make changes, and validate its work.
 
