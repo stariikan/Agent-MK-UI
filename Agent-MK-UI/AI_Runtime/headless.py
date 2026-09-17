@@ -24,6 +24,7 @@ import sys
 import os
 import json
 import traceback
+import shutil
 from dataclasses import asdict
 from pathlib import Path
 
@@ -67,12 +68,17 @@ def get_agent(chat, model_name: str, agent_profile: str = "auto") -> "assistant.
 
     if agent is None:
         root = get_workspace_for_chat(chat).resolve()
-        agent_dir = root / ".local_agent"
+        
+        # Isolate the LLM's memory database by chat_id.
+        # It must NEVER be stored inside the project workspace folder, 
+        # or multiple chats attached to the same project will become a hive-mind.
+        memory_dir = _DEFAULT_WORKSPACE_ROOT / "ChatMemories" / f"chat_{chat.id}"
+        memory_dir.mkdir(parents=True, exist_ok=True)
 
         cfg = assistant.Config(
             project_root=root,
-            db_path=agent_dir / "history.sqlite3",
-            audit_log_path=agent_dir / "audit.log",
+            db_path=memory_dir / "history.sqlite3",
+            audit_log_path=memory_dir / "audit.log",
             provider="ollama",
             model=model_name,
             endpoint=assistant.default_endpoint("ollama"),
@@ -188,6 +194,12 @@ def handle_delete_chat(req: dict) -> dict:
     chat_id = int(chat_id)
     _store.delete_chat(chat_id)
     _agents.pop(chat_id, None)
+
+    # Destroy the SQLite memory bubble on the hard drive!
+    # If we don't do this, a new chat that reuses this ID will inherit the deleted chat's memories.
+    memory_dir = _DEFAULT_WORKSPACE_ROOT / "ChatMemories" / f"chat_{chat_id}"
+    if memory_dir.exists():
+        shutil.rmtree(memory_dir, ignore_errors=True)
 
     return {"chat_id": chat_id}
 

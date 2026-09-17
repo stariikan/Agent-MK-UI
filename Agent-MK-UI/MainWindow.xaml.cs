@@ -37,7 +37,7 @@ namespace Agent_MK_UI
         private TextBlock? _thinkingStatusText;
         private DispatcherTimer? _ollamaStatsTimer;
         private int _ollamaStatsRefreshing;
-
+        private HashSet<string> _ignoredPaths = new();
         // ------------------------------------------------------------
         // Theme helpers
         // ------------------------------------------------------------
@@ -327,7 +327,7 @@ namespace Agent_MK_UI
                 );
 
                 _currentChat = chat;
-
+                _ignoredPaths.Clear();
                 await RefreshChatListAsync();
 
                 // 2. Auto-focus the input box so the user can type immediately.
@@ -382,7 +382,7 @@ namespace Agent_MK_UI
         private async Task SelectChatAsync(ChatSummary chat)
         {
             _currentChat = chat;
-
+            _ignoredPaths.Clear();
             BuildChatListPanel();
 
             ChatHistoryPanel.Children.Clear();
@@ -597,13 +597,24 @@ namespace Agent_MK_UI
 
         private void UpdateProjectStats(List<ProjectFileEntry> files)
         {
-            int fileCount = files.Count(f => !f.IsDir);
-            int directoryCount = files.Count(f => f.IsDir);
-            int visibleLimit = files.Count;
-            int codeLike = files.Count(f => !f.IsDir && IsCodeLikeFile(f.Path));
+            var visibleFiles = files.Where(f =>
+                !_ignoredPaths.Any(ignored =>
+                    f.Path == ignored || f.Path.StartsWith(ignored + "/") || f.Path.StartsWith(ignored + "\\")
+                )
+            ).ToList();
 
-            ProjectStatsText.Text =
-                $"{fileCount:N0} files • {directoryCount:N0} folders • {codeLike:N0} code/text • {visibleLimit:N0} indexed";
+            int fileCount = visibleFiles.Count(f => !f.IsDir);
+            int directoryCount = visibleFiles.Count(f => f.IsDir);
+            int codeLike = visibleFiles.Count(f => !f.IsDir && IsCodeLikeFile(f.Path));
+
+            string stats = $"{fileCount:N0} files • {directoryCount:N0} folders • {codeLike:N0} code/text";
+
+            if (_ignoredPaths.Count > 0)
+            {
+                stats += $"\n({_ignoredPaths.Count} items explicitly ignored)";
+            }
+
+            ProjectStatsText.Text = stats;
         }
 
         private static bool IsCodeLikeFile(string path)
@@ -635,7 +646,16 @@ namespace Agent_MK_UI
 
         private void BuildProjectTree(List<ProjectFileEntry> files)
         {
-            foreach (var entry in files)
+            ProjectTreePanel.Children.Clear();
+
+            // 1. Filter out ignored paths
+            var visibleFiles = files.Where(f =>
+                !_ignoredPaths.Any(ignored =>
+                    f.Path == ignored || f.Path.StartsWith(ignored + "/") || f.Path.StartsWith(ignored + "\\")
+                )
+            ).ToList();
+            // 2. Loop over visibleFiles instead of files
+            foreach (var entry in visibleFiles)
             {
                 int depth = entry.Path.Count(c => c == '/');
 
@@ -670,22 +690,40 @@ namespace Agent_MK_UI
 
                 row.Children.Add(label);
 
-                if (!entry.IsDir)
+                if (entry.IsDir)
+                {
+                    var removeBtn = new Button
+                    {
+                        Content = "✕",
+                        FontSize = 10,
+                        Padding = new Thickness(6, 2, 6, 2),
+                        Style = GetThemeStyle("QuietButtonStyle"),
+                        Foreground = GetThemeBrush("SystemFillColorCriticalBrush")
+                    };
+
+                    ToolTipService.SetToolTip(removeBtn, "Exclude folder from AI scans");
+
+                    removeBtn.Click += (_, __) =>
+                    {
+                        _ignoredPaths.Add(entry.Path);
+                        UpdateProjectStats(files); // Recalculate stats with the full list
+                        BuildProjectTree(files);   // Rebuild tree from the full list
+                    };
+
+                    Grid.SetColumn(removeBtn, 1);
+                    row.Children.Add(removeBtn);
+                }
+                else
                 {
                     var scanButton = new Button
                     {
                         Content = "Scan",
                         FontSize = 10,
-
                         Padding = new Thickness(4, 1, 4, 1),
-
                         Style = GetThemeStyle("QuietButtonStyle"),
                     };
-
                     scanButton.Click += (_, __) => ScanFileIntoInput(entry.Path);
-
                     Grid.SetColumn(scanButton, 1);
-
                     row.Children.Add(scanButton);
                 }
 
@@ -702,6 +740,10 @@ namespace Agent_MK_UI
                         Foreground = GetThemeBrush("TextFillColorSecondaryBrush"),
                     }
                 );
+            }
+            else if (visibleFiles.Count == 0)
+            {
+                ProjectTreePanel.Children.Add(new TextBlock { Text = "(all files ignored)", Foreground = GetThemeBrush("TextFillColorSecondaryBrush") });
             }
         }
 
@@ -754,10 +796,18 @@ namespace Agent_MK_UI
             if (_currentChat == null || string.IsNullOrWhiteSpace(_currentChat.ProjectPath))
                 return;
 
-            const string reviewPrompt =
-                "Review the attached project. Start by inspecting its structure and the files relevant to my request. "
-                + "Do not ask me to paste the project into chat; use the project workspace tools to read the files you need. "
-                + "First summarize the architecture and identify the most relevant files, then proceed with the requested work.";
+            // Pass the explicit exclusions to the AI
+            string ignorePrompt = _ignoredPaths.Count > 0
+                ? $"\n\nCRITICAL INSTRUCTION: You must COMPLETELY IGNORE the following excluded folders and files. Do not scan, read, or summarize them under any circumstances: {string.Join(", ", _ignoredPaths)}."
+                : "";
+
+            // Point the AI directly to the absolute path of the new project
+            string reviewPrompt =
+                $"Review the attached project located strictly at this path: \"{_currentChat.ProjectPath}\". "
+                + "Start by inspecting its structure and the files relevant to my request. "
+                + "Do not ask me to paste the project into chat; use your project workspace tools to read the files you need from that exact path. "
+                + "First summarize the architecture and identify the most relevant files, then proceed with the requested work."
+                + ignorePrompt;
 
             UserInputBox.Text = string.IsNullOrWhiteSpace(UserInputBox.Text)
                 ? reviewPrompt
@@ -792,7 +842,7 @@ namespace Agent_MK_UI
                     _currentChat.Id,
                     folder.Path
                 );
-
+                _ignoredPaths.Clear();
                 UpdateProjectActionButtons(true);
                 await RefreshProjectPanelAsync();
                 await RefreshChatListAsync();
@@ -1624,7 +1674,7 @@ namespace Agent_MK_UI
             {
                 // Detach the project by setting the ProjectPath to null
                 _currentChat = await _orchestrator.SetChatProjectAsync(_currentChat.Id, null);
-
+                _ignoredPaths.Clear();
                 // Immediately restore the detached-state actions, then refresh the rest of the UI.
                 UpdateProjectActionButtons(false);
                 await RefreshProjectPanelAsync();
