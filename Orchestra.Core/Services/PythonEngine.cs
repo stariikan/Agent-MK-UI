@@ -37,22 +37,23 @@ namespace Orchestra.Core.Services
         {
             try
             {
+                // CRITICAL FIX: Create UTF-8 encoding that strictly omits the Byte Order Mark (BOM)
+                var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = pythonExecutablePath,
                     Arguments = $"\"{scriptPath}\"",
-
-                    // CRITICAL FIX: Ensure Python executes inside the AppData AI_Runtime folder
                     WorkingDirectory = Path.GetDirectoryName(scriptPath),
 
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
 
-                    // CRITICAL FIX: Force UTF-8 encoding so JSON IPC doesn't crash on emojis/special characters
-                    StandardInputEncoding = System.Text.Encoding.UTF8,
-                    StandardOutputEncoding = System.Text.Encoding.UTF8,
-                    StandardErrorEncoding = System.Text.Encoding.UTF8,
+                    // Use the BOM-less UTF-8
+                    StandardInputEncoding = utf8WithoutBom,
+                    StandardOutputEncoding = utf8WithoutBom,
+                    StandardErrorEncoding = utf8WithoutBom,
 
                     UseShellExecute = false,
                     CreateNoWindow = true,
