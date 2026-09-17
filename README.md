@@ -3,7 +3,9 @@
 
 It combines a native **WinUI 3 desktop interface** with a **Python-based agent runtime** and local LLM backends such as **Ollama**. The goal is not just to provide a chat window, but to give a local model access to a real project workspace where it can inspect files, search code, make changes, and validate its work.
 
-<img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/6e901520-ac28-438b-90ea-762f413b1c06" />
+<img width="1422" height="745" alt="image" src="https://github.com/user-attachments/assets/f6bbfb46-337d-4e2b-8321-4de0e290fa4e" />
+
+<img width="1419" height="743" alt="image" src="https://github.com/user-attachments/assets/f3b11dd9-8ff5-43e1-ab42-80112f07474f" />
 
 ## What Agent-MK Does
 
@@ -222,7 +224,10 @@ The setup flow checks:
 * downloaded models
 * hardware information
 * recommended model configuration
-<img width="1410" height="731" alt="image" src="https://github.com/user-attachments/assets/1aaac5e5-fdb1-4da6-98de-1ffae0091228" />
+
+<img width="1137" height="838" alt="image" src="https://github.com/user-attachments/assets/030546ac-8893-47d4-b155-d9250a3abc3c" />
+
+<img width="1422" height="858" alt="image" src="https://github.com/user-attachments/assets/97c12f0b-3976-4361-a2d2-a5cbc09391e4" />
 
 ## The application stores setup state separately from chat history so the environment can be repaired without losing the chat database.
 
@@ -298,7 +303,8 @@ Protect the workspace, restrict commands, maintain backups, and record agent act
 ### Model-aware behavior
 
 Different local models have different capabilities. Agent-MK should adapt to the model rather than treating a small 7B coding model and a large model identically.
-<img width="1911" height="726" alt="image" src="https://github.com/user-attachments/assets/fb3141de-c6f0-41d7-96d9-8685018ade83" />
+
+<img width="1414" height="810" alt="image" src="https://github.com/user-attachments/assets/cb74aae8-27ea-42d9-a3b8-883e195e45fa" />
 
 ---
 
@@ -355,3 +361,4 @@ The goal is to make a local model behave more like a **software-engineering agen
 
 
 ## Bug reports, experiments, and ideas are welcome.
+MuratKhabriev@gmail.com
