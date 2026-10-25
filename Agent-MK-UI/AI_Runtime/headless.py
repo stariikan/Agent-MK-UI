@@ -143,6 +143,17 @@ def list_project_tree(project_path: str) -> list[dict]:
 # which main() fills in around whatever these return).
 # ------------------------------------------------------------
 
+def emit_chat_progress(chat_id: int, message: str) -> None:
+    """Write a progress frame on stdout; the C# IPC reader consumes it before the final response."""
+    frame = {
+        "action": "chat_progress",
+        "chat_id": chat_id,
+        "progress_text": message,
+    }
+    sys.stdout.write(json.dumps(frame, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
 def handle_chat(req: dict) -> dict:
     chat_id = req.get("chat_id")
     prompt = req.get("prompt", "")
@@ -163,7 +174,10 @@ def handle_chat(req: dict) -> dict:
     agent = get_agent(chat, model_name, agent_profile)
 
     _store.add_message(chat.id, "user", prompt)
-    reply = agent.run(prompt)
+    reply = agent.run(
+        prompt,
+        progress_callback=lambda message: emit_chat_progress(chat.id, message),
+    )
     _store.add_message(chat.id, "assistant", reply)
 
     return {"chat_id": chat.id, "response_text": reply}

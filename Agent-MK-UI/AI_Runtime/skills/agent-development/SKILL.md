@@ -1,6 +1,7 @@
 ---
 name: agent-development
-description: Improve a tool-using assistant through clear instructions, constrained tools, and reusable workflows.
-keywords: agent assistant prompt instruction skill skills local bot chatbot tools workflow improve
+description: Diagnose and improve a local assistant's prompts, tools, context flow, and packaging.
+keywords: agent assistant prompt instruction skill skills bot chatbot tools workflow improve runtime
+priority: 20
 ---
-First map the agent loop: system instructions, tool schemas and execution, context/history assembly, workspace boundaries, and UI-to-runtime configuration. Prefer targeted improvements to behavior that can be reached through the existing integration. Keep model-facing tool instructions concise and schemas literal; add reusable skills as separately selectable guidance rather than a giant always-on prompt. Check that tool results are treated as data, failed tool calls are recoverable, and the assistant can still answer ordinary questions without invoking tools. Verify that new modules and skill files are packaged by the application and identify integration assumptions explicitly.
+Start from the reported behavior and trace the path that produced it: prompt assembly, skill selection, tool schema, parser, execution, UI, and packaging. Fix the responsible layer; do not paper over a parser or integration defect with more prompt text. Keep guidance short, resolve contradictions, and include concrete behavior rules for common failures. Check both the intended model response and the runtime's handling of it. Confirm added skills/modules are packaged and report which behavior was verified.

@@ -375,7 +375,7 @@ MuratKhabriev@gmail.com
 
 Chats without an attached project still have a private, isolated workspace. The assistant can answer general questions, explain concepts, draft writing, and plan work without a project. File operations remain limited to that chat's workspace; attach a project when a request depends on existing files.
 
-The Python runtime includes small task guides for code changes, debugging, explanations, writing, planning, and agent development. Relevant guides are selected for the current request, and the `list_skills` / `read_skill` tools let the model inspect them. To add a guide, create `AI_Runtime/skills/<skill-name>/SKILL.md` with `name`, `description`, and comma-separated `keywords` in a YAML-style header, followed by concise workflow advice. The runtime loads these files from the deployed AI_Runtime folder, so they are included in the app's generated Python archive during build.
+The Python runtime includes small task guides for code changes, Python scripts, debugging, explanations, writing, planning, and agent development. Relevant guides are selected for the current request, and the `list_skills` / `read_skill` tools let the model inspect them. To add a guide, create `AI_Runtime/skills/<skill-name>/SKILL.md` with `name`, `description`, comma-separated `keywords`, and an optional numeric `priority` in a YAML-style header. Higher priority breaks ties when equally relevant skills are selected, followed by concise workflow advice. The runtime loads these files from the deployed AI_Runtime folder, so they are included in the app's generated Python archive during build.
 
 ## Build the desktop project
 

@@ -89,6 +89,10 @@ namespace Agent_MK_UI
 
             _logger = services?.GetService<IAgentLogger>();
             _orchestrator = services?.GetService<AgentOrchestrator>();
+            if (_orchestrator != null)
+            {
+                _orchestrator.ProgressReported += OnAgentProgressReported;
+            }
             _setupOrchestrator = services?.GetService<SetupOrchestrator>();
             _ollamaManager = services?.GetService<OllamaManager>();
 
@@ -1292,6 +1296,21 @@ namespace Agent_MK_UI
             return border;
         }
 
+        private void OnAgentProgressReported(int chatId, string message)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_currentChat?.Id != chatId || _thinkingStatusText == null)
+                {
+                    return;
+                }
+
+                _thinkingTimer?.Stop();
+                _thinkingTimer = null;
+                _thinkingStatusText.Text = message;
+            });
+        }
+
         private void StopThinkingAnimation()
         {
             _thinkingTimer?.Stop();
@@ -1598,6 +1617,10 @@ namespace Agent_MK_UI
 
         private void MainWindow_Closed(object sender, WindowEventArgs e)
         {
+            if (_orchestrator != null)
+            {
+                _orchestrator.ProgressReported -= OnAgentProgressReported;
+            }
             StopThinkingAnimation();
             _ollamaStatsTimer?.Stop();
             _ollamaStatsTimer = null;

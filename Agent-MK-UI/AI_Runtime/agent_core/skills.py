@@ -26,7 +26,7 @@ def _load() -> list[dict[str, str]]:
         description = fields.get("description", "")
         keywords = fields.get("keywords", "")
         body = content.split("---", 2)[-1].strip() if header else content.strip()
-        result.append({"name": name, "description": description, "keywords": keywords, "body": body, "path": path})
+        result.append({"name": name, "description": description, "keywords": keywords, "priority": fields.get("priority", "0"), "body": body, "path": path})
     return result
 
 
@@ -42,19 +42,23 @@ def read_skill(name: str) -> str:
 
 
 def skill_context(prompt: str, max_skills: int = 2) -> str:
-    """Select a few task-relevant guides without adding every skill to context."""
-    normalized = re.sub(r"[^a-z0-9]+", " ", (prompt or "").lower())
+    """Select task guides by whole-word keyword matches, avoiding substring noise."""
+    prompt_terms = set(re.findall(r"[a-z0-9+#.-]+", (prompt or "").lower()))
     selected = []
     for skill in _load():
         terms = set(re.findall(r"[a-z0-9+#.-]+", skill["keywords"].lower()))
         terms.update(re.findall(r"[a-z0-9+#.-]+", skill["name"].lower().replace("_", " ")))
-        score = sum(1 for term in terms if len(term) > 2 and term in normalized)
+        score = sum(1 for term in terms if len(term) > 2 and term in prompt_terms)
         if score:
-            selected.append((score, skill))
-    selected.sort(key=lambda row: (-row[0], row[1]["name"]))
+            try:
+                priority = int(skill["priority"])
+            except ValueError:
+                priority = 0
+            selected.append((score, priority, skill))
+    selected.sort(key=lambda row: (-row[0], -row[1], row[2]["name"]))
     if not selected:
         return ""
     parts = ["RELEVANT SKILLS (workflow guidance; use only when helpful):"]
-    for _score, skill in selected[:max_skills]:
+    for _score, _priority, skill in selected[:max_skills]:
         parts.append(f"\n### {skill['name']}\n{skill['body']}")
     return "\n".join(parts)

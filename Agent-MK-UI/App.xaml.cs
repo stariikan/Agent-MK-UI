@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -87,28 +88,90 @@ namespace Agent_MK_UI
             string localAppData = Environment.GetFolderPath(
                 Environment.SpecialFolder.LocalApplicationData
             );
-            string runtimeDir = Path.Combine(localAppData, "AgentMK", "AI_Runtime");
+            string appFolder = Path.Combine(localAppData, "AgentMK");
+            string runtimeDir = Path.Combine(appFolder, "AI_Runtime");
+            Directory.CreateDirectory(appFolder);
 
-            if (!File.Exists(Path.Combine(runtimeDir, "headless.py")))
+            using Stream? resource = Assembly
+                .GetExecutingAssembly()
+                .GetManifestResourceStream("AIRuntime.zip");
+            if (resource is null)
             {
-                if (Directory.Exists(runtimeDir))
-                {
-                    Directory.Delete(runtimeDir, true);
-                }
-                Directory.CreateDirectory(runtimeDir);
-
-                using Stream? stream = Assembly
-                    .GetExecutingAssembly()
-                    .GetManifestResourceStream("AIRuntime.zip");
-
-                if (stream != null)
-                {
-                    using ZipArchive archive = new ZipArchive(stream);
-                    archive.ExtractToDirectory(runtimeDir);
-                }
+                throw new InvalidOperationException("The bundled Python runtime (AIRuntime.zip) is missing.");
             }
 
-            return runtimeDir;
+            using var buffer = new MemoryStream();
+            resource.CopyTo(buffer);
+            byte[] archiveBytes = buffer.ToArray();
+            string archiveHash = Convert.ToHexString(SHA256.HashData(archiveBytes));
+            string headlessPath = Path.Combine(runtimeDir, "headless.py");
+            string versionPath = Path.Combine(runtimeDir, ".runtime.sha256");
+
+            if (
+                File.Exists(headlessPath)
+                && File.Exists(versionPath)
+                && string.Equals(
+                    File.ReadAllText(versionPath).Trim(),
+                    archiveHash,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                return runtimeDir;
+            }
+
+            // Extract to a staging directory first so a broken archive cannot
+            // destroy the last working runtime. Swap only after extraction succeeds.
+            string stagingDir = Path.Combine(appFolder, $"AI_Runtime.staging-{Guid.NewGuid():N}");
+            string backupDir = Path.Combine(appFolder, $"AI_Runtime.backup-{Guid.NewGuid():N}");
+            try
+            {
+                Directory.CreateDirectory(stagingDir);
+                using var archiveStream = new MemoryStream(archiveBytes, writable: false);
+                using (var archive = new ZipArchive(archiveStream, ZipArchiveMode.Read))
+                {
+                    archive.ExtractToDirectory(stagingDir);
+                }
+
+                if (!File.Exists(Path.Combine(stagingDir, "headless.py")))
+                {
+                    throw new InvalidDataException("The bundled runtime does not contain headless.py.");
+                }
+
+                File.WriteAllText(Path.Combine(stagingDir, ".runtime.sha256"), archiveHash);
+                if (Directory.Exists(runtimeDir))
+                {
+                    Directory.Move(runtimeDir, backupDir);
+                }
+
+                Directory.Move(stagingDir, runtimeDir);
+                TryDeleteDirectory(backupDir);
+                return runtimeDir;
+            }
+            finally
+            {
+                // Restore the previous runtime if the final directory swap failed.
+                if (!Directory.Exists(runtimeDir) && Directory.Exists(backupDir))
+                {
+                    Directory.Move(backupDir, runtimeDir);
+                }
+
+                TryDeleteDirectory(stagingDir);
+                TryDeleteDirectory(backupDir);
+            }
+        }
+
+        private static void TryDeleteDirectory(string path)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, recursive: true);
+                }
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
         }
 
         public bool TryStartPythonEngine()

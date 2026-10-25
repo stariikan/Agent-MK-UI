@@ -1,6 +1,7 @@
 ---
 name: debugging
-description: Diagnose a defect from reproducible evidence before changing code.
+description: Find a defect from the observed behavior, logs, and source.
 keywords: debug debugging bug error exception crash failing broken traceback logs reproduce
+priority: 15
 ---
-Establish the observed failure and expected behavior. Inspect the error, relevant logs, and the narrow code path; follow data and control flow to a root cause. Separate confirmed facts from hypotheses. Make a minimal fix that addresses the cause, not just the symptom. Check adjacent edge cases and verify with the narrowest relevant command or reproduction. If the evidence is incomplete, state what is unknown and request only the information that blocks diagnosis.
+State the symptom and expected behavior in concrete terms. Use the supplied code, logs, and sample input/output first. Trace the failing path to a cause before proposing a fix; don't replace diagnosis with a generic checklist or speculative rewrite. If evidence is missing, ask for the exact error, source section, or sample that blocks diagnosis. Add requested instrumentation at useful checkpoints, preserve the current output channel, and distinguish a suggested fix from one actually run.

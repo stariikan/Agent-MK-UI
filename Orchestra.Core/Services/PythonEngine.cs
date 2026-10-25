@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -13,6 +13,7 @@ namespace Orchestra.Core.Services
     {
         private readonly IAgentLogger _logger;
         private Process? _pythonProcess;
+        public event Action<int, string>? ChatProgressReceived;
 
         /// <summary>True only while the process is actually alive. Callers (App.xaml.cs) should check this before opening the main window instead of assuming StartProcess succeeded.</summary>
         public bool IsRunning => _pythonProcess != null && !_pythonProcess.HasExited;
@@ -95,19 +96,26 @@ namespace Orchestra.Core.Services
                 await _stdin.WriteLineAsync(jsonRequest);
                 await _stdin.FlushAsync();
 
-                string? jsonResponse = await _stdout.ReadLineAsync();
-
-                if (string.IsNullOrWhiteSpace(jsonResponse))
+                while (true)
                 {
-                    _logger.LogError("Received empty response from Python Engine.");
-                    return new AgentResponse
+                    string? jsonResponse = await _stdout.ReadLineAsync();
+                    if (string.IsNullOrWhiteSpace(jsonResponse))
                     {
-                        IsError = true,
-                        ErrorMessage = "Empty process response.",
-                    };
-                }
+                        _logger.LogError("Received empty response from Python Engine.");
+                        return new AgentResponse
+                        {
+                            IsError = true,
+                            ErrorMessage = "Empty process response.",
+                        };
+                    }
 
-                return JsonSerializer.Deserialize<AgentResponse>(jsonResponse);
+                    if (DispatchChatProgress(jsonResponse))
+                    {
+                        continue;
+                    }
+
+                    return JsonSerializer.Deserialize<AgentResponse>(jsonResponse);
+                }
             }
             catch (Exception ex)
             {
@@ -118,6 +126,54 @@ namespace Orchestra.Core.Services
             {
                 _ipcLock.Release();
             }
+        }
+
+        private bool DispatchChatProgress(string jsonLine)
+        {
+            using var document = JsonDocument.Parse(jsonLine);
+            JsonElement root = document.RootElement;
+            if (
+                !root.TryGetProperty("action", out var action)
+                || action.GetString() != "chat_progress"
+            )
+            {
+                return false;
+            }
+
+            if (
+                !root.TryGetProperty("chat_id", out var chatIdElement)
+                || !chatIdElement.TryGetInt32(out int chatId)
+                || !root.TryGetProperty("progress_text", out var textElement)
+                || textElement.ValueKind != JsonValueKind.String
+            )
+            {
+                _logger.LogWarning("Ignored an invalid chat progress frame from Python.");
+                return true;
+            }
+
+            string message = textElement.GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return true;
+            }
+
+            _logger.LogInfo($"[Agent progress chat {chatId}]: {message}");
+            var handlers = ChatProgressReceived;
+            if (handlers != null)
+            {
+                foreach (Action<int, string> handler in handlers.GetInvocationList())
+                {
+                    try
+                    {
+                        handler(chatId, message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Chat progress listener failed: {ex.Message}");
+                    }
+                }
+            }
+            return true;
         }
 
         private async Task MonitorErrorsAsync()

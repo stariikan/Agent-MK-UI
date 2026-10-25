@@ -109,63 +109,120 @@ class LocalAgent:
         model_context_length = get_model_context_length(self.cfg.endpoint, self.cfg.model)
         return effective_context_char_budget(self.cfg.max_context_chars, model_context_length)
 
-    def _base_messages(self, user_prompt: str) -> list[dict[str, str]]:
-        tool_text = self.tools.describe_for_prompt()
-
-        workspace_mode = "an attached project" if getattr(self.cfg, "workspace_is_project", True) else "an isolated chat workspace (no project is attached)"
-        skill_text = skill_context(user_prompt)
-        system = SYSTEM_PROMPT + "\n\nCURRENT WORKSPACE: " + workspace_mode + ". You can answer general questions without inspecting files. File operations can only access this workspace." + ("\n\n" + skill_text if skill_text else "") + "\n\nAVAILABLE TOOLS:\n" + tool_text
-
-        history = self.db.recent_messages(
-            self.cfg.max_history_messages
+    def _system_message(self, user_prompt: str) -> str:
+        workspace_mode = (
+            "an attached project"
+            if getattr(self.cfg, "workspace_is_project", True)
+            else "an isolated chat workspace (no project is attached)"
         )
+        skill_text = skill_context(user_prompt)
+        parts = [
+            SYSTEM_PROMPT,
+            "CURRENT WORKSPACE: "
+            + workspace_mode
+            + ". General questions do not require file inspection. File operations are limited to this workspace.",
+        ]
+        if skill_text:
+            parts.append(skill_text)
+        parts.append("AVAILABLE TOOLS: " + self.tools.describe_for_prompt())
+        return "\n\n".join(parts)
 
-        messages = [{"role": "system", "content": system}]
+    def _base_messages(self, user_prompt: str) -> list[dict[str, str]]:
+        history = self.db.recent_messages(self.cfg.max_history_messages)
+
+        # run() stores the current user message before building context. Remove
+        # that saved copy here because it is appended explicitly below.
+        if (
+            history
+            and history[-1].get("role") == "user"
+            and history[-1].get("content") == user_prompt
+        ):
+            history = history[:-1]
+
+        messages = [{"role": "system", "content": self._system_message(user_prompt)}]
         messages.extend(history)
         messages.append({"role": "user", "content": user_prompt})
-
-        return trim_messages(
-            messages,
-            self._effective_max_chars(),
-        )
+        return trim_messages(messages, self._effective_max_chars())
 
     def get_context_usage(self) -> dict[str, Any]:
-        """
-        Reports how full the context window is *right now*, without
-        sending anything to the model -- usable any time (e.g. when the
-        UI switches to a chat), not just right after a message. Combines
-        the character-budget accounting (context_usage_from_messages)
-        with a best-effort real model context length from Ollama, so the
-        UI can show "~12,400 / 32,768 tokens" instead of just a percentage
-        of an internal, model-agnostic character cap.
-        """
-        tool_text = self.tools.describe_for_prompt()
-        workspace_mode = "an attached project" if getattr(self.cfg, "workspace_is_project", True) else "an isolated chat workspace (no project is attached)"
-        system = SYSTEM_PROMPT + "\n\nCURRENT WORKSPACE: " + workspace_mode + ". You can answer general questions without inspecting files. File operations can only access this workspace.\n\nAVAILABLE TOOLS:\n" + tool_text
+        """Report the context usage for the system and current saved history."""
         history = self.db.recent_messages(self.cfg.max_history_messages)
-        messages = [{"role": "system", "content": system}] + history
+        last_user_prompt = next(
+            (
+                message.get("content", "")
+                for message in reversed(history)
+                if message.get("role") == "user"
+            ),
+            "",
+        )
+        messages = [
+            {"role": "system", "content": self._system_message(last_user_prompt)}
+        ] + history
 
         model_context_length = get_model_context_length(self.cfg.endpoint, self.cfg.model)
-        effective_max_chars = effective_context_char_budget(self.cfg.max_context_chars, model_context_length)
-
+        effective_max_chars = effective_context_char_budget(
+            self.cfg.max_context_chars, model_context_length
+        )
         usage = context_usage_from_messages(messages, effective_max_chars)
-
         usage["max_tokens_model"] = model_context_length or (self.cfg.max_context_chars // 4)
         usage["max_tokens_is_estimate"] = model_context_length is None
         usage["total_stored_messages"] = self.db.total_message_count()
-        usage["remembered_message_count"] = max(0, usage["kept_message_count"] - 1)  # -1 for the system message
+        usage["remembered_message_count"] = max(0, usage["kept_message_count"] - 1)
         usage["agent_profile"] = self._refresh_policy().name
         usage["max_output_tokens"] = self.cfg.max_tokens
-
         return usage
 
-    def run(self, user_prompt: str) -> str:
+    @staticmethod
+    def _tool_progress_message(tool_name: str, arguments: dict[str, Any]) -> str:
+        raw_path = arguments.get("path")
+        filename = str(raw_path).replace("\\", "/").rsplit("/", 1)[-1] if raw_path else ""
+        if tool_name in {"project_summary", "list_files"}:
+            return "Inspecting project structure…"
+        if tool_name == "search_files":
+            return "Searching project files…"
+        if tool_name == "read_file":
+            return f"Reading {filename}…" if filename else "Reading a file…"
+        if tool_name == "write_file":
+            return f"Updating {filename}…" if filename else "Updating a file…"
+        if tool_name == "workspace_snapshot":
+            return "Reviewing project files…"
+        if tool_name == "run_command":
+            return "Running a command…"
+        if tool_name in {"list_skills", "read_skill"}:
+            return "Loading task guidance…"
+        return "Using a tool…"
+
+    @staticmethod
+    def _tool_result_progress(tool_name: str, result: Any) -> str:
+        if not isinstance(result, dict) or not result.get("ok", True):
+            return "A tool reported a problem; adjusting the next step…"
+        if tool_name == "write_file":
+            path = result.get("path", "the file")
+            if result.get("written"):
+                return f"Saved {path}."
+            if result.get("dry_run"):
+                return f"Previewed changes to {path}."
+        if tool_name == "read_file":
+            return f"Read {result.get('path', 'the file')}."
+        if tool_name == "run_command":
+            return "Command completed successfully." if result.get("returncode") == 0 else "Command reported a problem; adjusting the next step…"
+        return "Received the tool result; continuing…"
+
+    def run(self, user_prompt: str, progress_callback: Callable[[str], None] | None = None) -> str:
         run_id = self.db.start_run(user_prompt)
         self.db.save_message("user", user_prompt)
 
         messages = self._base_messages(user_prompt)
 
+        def report(message: str) -> None:
+            if progress_callback is not None:
+                try:
+                    progress_callback(message)
+                except Exception as callback_error:
+                    self.logger.debug(f"Progress callback failed: {callback_error}")
+
         try:
+            report("Working on your request…")
             max_tool_steps = self._effective_max_tool_steps()
             duplicate_counts: dict[str, int] = {}
             stagnant_steps = 0
@@ -179,9 +236,10 @@ class LocalAgent:
                 )
 
                 raw = self.model.chat(messages)
-                action = parse_agent_action(raw)
+                action = parse_agent_action(raw, self.tools.tools.keys())
 
                 if action["type"] == "final":
+                    report("Preparing response…")
                     reply = action["reply"].strip() or \
                         "I completed the task."
 
@@ -194,6 +252,7 @@ class LocalAgent:
                     return reply
 
                 if action["type"] == "invalid_tool":
+                    report("Recovering from an invalid tool request…")
                     invalid_tool_retries += 1
                     if invalid_tool_retries > 1:
                         reply = "The model produced malformed tool-call JSON twice; I stopped safely rather than executing an ambiguous action."
@@ -237,6 +296,7 @@ class LocalAgent:
                         self.logger.warning(f"Blocked repeated tool call: {tool_name}")
                     else:
                         last_phase = self._phase_for_tool(tool_name)
+                        report(self._tool_progress_message(tool_name, tool_args))
                         self.logger.info(f"  → tool: {tool_name} phase={last_phase}")
 
                         try:
@@ -271,6 +331,7 @@ class LocalAgent:
                         result_text = self._compact_tool_result(result)
                         stagnant_steps = 0
 
+                    report(self._tool_result_progress(tool_name, result))
                     self.db.save_tool_event(
                         run_id,
                         tool_name,
@@ -306,6 +367,7 @@ class LocalAgent:
                     )
                     continue
 
+            report("Stopped because the tool-step limit was reached.")
             reply = (
                 f"I reached the maximum number of tool steps ({max_tool_steps}) before finishing. "
                 "The task may need another run or a different approach."

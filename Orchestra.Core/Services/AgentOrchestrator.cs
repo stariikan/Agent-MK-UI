@@ -24,6 +24,8 @@ namespace Orchestra.Core.Services
         private readonly PythonEngine _pythonEngine;
         private readonly SetupStateStore _stateStore;
 
+        public event Action<int, string>? ProgressReported;
+
         public AgentOrchestrator(
             IAgentLogger logger,
             PythonEngine pythonEngine,
@@ -33,6 +35,12 @@ namespace Orchestra.Core.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _pythonEngine = pythonEngine ?? throw new ArgumentNullException(nameof(pythonEngine));
             _stateStore = stateStore ?? throw new ArgumentNullException(nameof(stateStore));
+            _pythonEngine.ChatProgressReceived += RelayProgress;
+        }
+
+        private void RelayProgress(int chatId, string message)
+        {
+            ProgressReported?.Invoke(chatId, message);
         }
 
         private async Task<AgentResponse> SendAsync(AgentRequest request)

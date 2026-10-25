@@ -1,6 +1,7 @@
 ---
 name: planning
-description: Turn a goal into a practical sequence with dependencies and decisions.
+description: Create a practical plan when the user asks how to approach a goal.
 keywords: plan planning roadmap steps organize schedule approach design architecture
+priority: 10
 ---
-Clarify the desired outcome and constraints from available context. Break the work into ordered, actionable steps; show dependencies, risks, and decisions that can change the plan. Prefer a useful first action over a long generic checklist. Do not imply work has been performed when you have only produced a plan.
+Turn the stated goal and constraints into ordered, actionable steps. Identify dependencies and decisions that could change the plan. Keep the plan proportional to the task and include a useful first step. Do not present planned work as completed work or turn an execution request into a plan unless a blocker requires it.

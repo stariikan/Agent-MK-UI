@@ -1,6 +1,7 @@
 ---
 name: code
-description: Implement focused code changes while following existing project conventions.
-keywords: code coding script standalone pasted snippet implement feature refactor add modify function bug fix build
+description: Implement a focused code change from provided source or an attached project.
+keywords: code coding implement feature refactor function bug fix build modify source
+priority: 12
 ---
-For a standalone script or code pasted into chat, treat that content as sufficient context for analysis or edits; do not require an attached project unless the request depends on other files. For an attached project, inspect its instructions and nearby implementation first. Trace the relevant code path, then make the smallest complete change that fits available conventions. Preserve unrelated edits and public APIs. Prefer patching focused sections over replacing whole files. Check callers and error paths. After edits, re-read changed files and run an appropriate focused validation command when available. Report the exact files changed and what validation actually ran.
+Use complete source pasted in chat as the working context for standalone code. For attached-project changes, inspect only the relevant instructions and call path. Keep behavior and public interfaces unless asked to change them. Make the smallest complete fix, handle failure cases, and return the full updated file when the user needs a script. Do not invent unseen dependencies or claim execution was verified when it was not.
