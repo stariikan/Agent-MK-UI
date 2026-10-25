@@ -384,3 +384,6 @@ Open `Agent-MK-UI.sln` in Visual Studio with the Windows App SDK and .NET 8 Wind
 ```powershell
 dotnet build .\Agent-MK-UI\Agent-MK-UI.csproj -p:Platform=x64
 ```
+## Chat file attachments
+
+Drop supported text or source files onto the chat input to include them with your next message. Supported formats include `.txt`, `.py`, `.json`, `.cs`, `.js`, `.ts`, `.html`, `.css`, `.xml`, `.yaml`, `.md`, `.sql`, `.ps1`, and common programming language source files. Each file is limited to 1 MB. The file contents are inserted into the message with the filename so the assistant can answer questions about them without attaching a project folder.

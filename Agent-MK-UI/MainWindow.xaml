@@ -162,6 +162,9 @@
                     <TextBox
             x:Name="UserInputBox"
             Grid.Row="0"
+            AllowDrop="True"
+            DragOver="UserInputBox_DragOver"
+            Drop="UserInputBox_Drop"
             AcceptsReturn="True"
             TextWrapping="Wrap"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -187,7 +190,7 @@
                         <TextBlock
               Grid.Column="0"
               x:Name="InputHintText"
-              Text="Enter to send, Shift+Enter for a new line."
+              Text="Drop text, script, or JSON files here. Enter sends; Shift+Enter adds a line."
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               FontSize="11"
               VerticalAlignment="Center"
