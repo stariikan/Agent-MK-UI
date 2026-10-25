@@ -30,6 +30,7 @@ from typing import Any, Callable, Iterable, Optional
 
 from agent_core.config import Config
 from agent_core.workspace import Workspace
+from agent_core.skills import list_skills, read_skill
 
 ToolFn = Callable[[dict[str, Any]], Any]
 
@@ -320,6 +321,32 @@ def build_tools(
 
     tools.register(
         Tool(
+            name="list_skills",
+            description="List bundled task guides for coding, debugging, writing, planning, and explanations.",
+            schema={},
+            fn=lambda _args: {"ok": True, "skills": list_skills()},
+        )
+    )
+
+    def get_skill(args: dict[str, Any]) -> dict[str, Any]:
+        name = args.get("name")
+        if not isinstance(name, str):
+            return {"ok": False, "error": "name must be a string"}
+        try:
+            return {"ok": True, "name": name, "content": read_skill(name)}
+        except KeyError as exc:
+            return {"ok": False, "error": str(exc)}
+
+    tools.register(
+        Tool(
+            name="read_skill",
+            description="Read a bundled task guide when its workflow is relevant.",
+            schema={"name": "skill name returned by list_skills"},
+            fn=get_skill,
+        )
+    )
+    tools.register(
+        Tool(
             name="run_command",
             description=(
                 "Run a command from the configured executable allowlist. "
@@ -345,6 +372,8 @@ def build_tools(
 # ============================================================
 # CLI
 # ============================================================
+
+
 
 
 

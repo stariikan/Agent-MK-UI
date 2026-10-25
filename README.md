@@ -368,3 +368,19 @@ The goal is to make a local model behave more like a **software-engineering agen
 
 ## Bug reports, experiments, and ideas are welcome.
 MuratKhabriev@gmail.com
+
+
+
+## Skills and no-project chats
+
+Chats without an attached project still have a private, isolated workspace. The assistant can answer general questions, explain concepts, draft writing, and plan work without a project. File operations remain limited to that chat's workspace; attach a project when a request depends on existing files.
+
+The Python runtime includes small task guides for code changes, debugging, explanations, writing, planning, and agent development. Relevant guides are selected for the current request, and the `list_skills` / `read_skill` tools let the model inspect them. To add a guide, create `AI_Runtime/skills/<skill-name>/SKILL.md` with `name`, `description`, and comma-separated `keywords` in a YAML-style header, followed by concise workflow advice. The runtime loads these files from the deployed AI_Runtime folder, so they are included in the app's generated Python archive during build.
+
+## Build the desktop project
+
+Open `Agent-MK-UI.sln` in Visual Studio with the Windows App SDK and .NET 8 Windows development components installed, or run:
+
+```powershell
+dotnet build .\Agent-MK-UI\Agent-MK-UI.csproj -p:Platform=x64
+```

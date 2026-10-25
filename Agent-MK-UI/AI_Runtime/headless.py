@@ -77,6 +77,7 @@ def get_agent(chat, model_name: str, agent_profile: str = "auto") -> "assistant.
 
         cfg = assistant.Config(
             project_root=root,
+            workspace_is_project=bool(chat.project_path),
             db_path=memory_dir / "history.sqlite3",
             audit_log_path=memory_dir / "audit.log",
             provider="ollama",
@@ -329,5 +330,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 

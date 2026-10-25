@@ -75,6 +75,7 @@ class Config:
     project_root: Path
     db_path: Path
     audit_log_path: Path
+    workspace_is_project: bool = True
 
     provider: str = "ollama"
     model: str = "qwen2.5-coder:14b"
@@ -156,6 +157,8 @@ class Config:
 # ============================================================
 # Logging
 # ============================================================
+
+
 
 
 

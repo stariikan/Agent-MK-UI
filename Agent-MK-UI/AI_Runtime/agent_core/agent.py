@@ -34,6 +34,7 @@ from agent_core.workspace import Workspace
 from agent_core.model_client import ModelClient
 from agent_core.tools import ToolRegistry
 from agent_core.actions import SYSTEM_PROMPT, parse_agent_action
+from agent_core.skills import skill_context
 from agent_core.context import (
     trim_messages,
     context_usage_from_messages,
@@ -111,7 +112,9 @@ class LocalAgent:
     def _base_messages(self, user_prompt: str) -> list[dict[str, str]]:
         tool_text = self.tools.describe_for_prompt()
 
-        system = SYSTEM_PROMPT + "\n\nAVAILABLE TOOLS:\n" + tool_text
+        workspace_mode = "an attached project" if getattr(self.cfg, "workspace_is_project", True) else "an isolated chat workspace (no project is attached)"
+        skill_text = skill_context(user_prompt)
+        system = SYSTEM_PROMPT + "\n\nCURRENT WORKSPACE: " + workspace_mode + ". You can answer general questions without inspecting files. File operations can only access this workspace." + ("\n\n" + skill_text if skill_text else "") + "\n\nAVAILABLE TOOLS:\n" + tool_text
 
         history = self.db.recent_messages(
             self.cfg.max_history_messages
@@ -137,8 +140,8 @@ class LocalAgent:
         of an internal, model-agnostic character cap.
         """
         tool_text = self.tools.describe_for_prompt()
-        system = SYSTEM_PROMPT + "\n\nAVAILABLE TOOLS:\n" + tool_text
-
+        workspace_mode = "an attached project" if getattr(self.cfg, "workspace_is_project", True) else "an isolated chat workspace (no project is attached)"
+        system = SYSTEM_PROMPT + "\n\nCURRENT WORKSPACE: " + workspace_mode + ". You can answer general questions without inspecting files. File operations can only access this workspace.\n\nAVAILABLE TOOLS:\n" + tool_text
         history = self.db.recent_messages(self.cfg.max_history_messages)
         messages = [{"role": "system", "content": system}] + history
 
@@ -420,6 +423,8 @@ class LocalAgent:
 # ============================================================
 # Tool construction
 # ============================================================
+
+
 
 
 

@@ -172,3 +172,5 @@ class ChatStore:
 
     def close(self) -> None:
         self._conn.close()
+
+

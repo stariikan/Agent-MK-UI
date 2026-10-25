@@ -140,3 +140,4 @@ class ModelClient:
             raise ModelError(
                 f"Unexpected OpenAI-compatible response: {result}"
             ) from e
+

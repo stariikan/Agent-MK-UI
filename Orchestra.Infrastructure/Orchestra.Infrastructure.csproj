@@ -9,3 +9,4 @@
 		<ProjectReference Include="..\Orchestra.Core\Orchestra.Core.csproj" />
 	</ItemGroup>
 </Project>
+

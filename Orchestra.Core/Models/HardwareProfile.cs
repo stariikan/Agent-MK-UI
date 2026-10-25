@@ -23,3 +23,5 @@
         public bool VramIsApproximate { get; set; }
     }
 }
+
+

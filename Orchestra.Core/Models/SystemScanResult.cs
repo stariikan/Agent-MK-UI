@@ -28,3 +28,5 @@ namespace Orchestra.Core.Models
             PythonFound && VenvExists && DependenciesInstalled && OllamaInstalled && OllamaRunning;
     }
 }
+
+
