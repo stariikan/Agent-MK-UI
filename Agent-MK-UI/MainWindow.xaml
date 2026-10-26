@@ -157,6 +157,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <TextBox
@@ -179,8 +180,16 @@
             Text=""
           />
 
-                    <!-- ARCHITECTURAL FIX: Restructured Grid layout to remove Attach File button -->
-                    <Grid Grid.Row="1" Margin="0,8,0,0">
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                        <TextBlock Text="Conversation mode" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock x:Name="ChatModeBadge" Text="Chat" VerticalAlignment="Center" FontWeight="SemiBold" />
+                        <Button x:Name="ChooseTaskFolderButton" Content="Choose task folder" Click="ChooseTaskFolderButton_Click" Visibility="Collapsed" ToolTipService.ToolTip="This becomes the workspace folder for this chat. For a new site, choose its parent folder." />
+                        <CheckBox x:Name="AllowTaskCommandsCheckBox" Content="Allow local commands" Visibility="Collapsed">
+                            <ToolTipService.ToolTip>Allows allowlisted Python, Node, npm, and Git commands to run as your Windows account. Commands may access files outside the chosen workspace.</ToolTipService.ToolTip>
+                        </CheckBox>
+                    </StackPanel>
+
+                    <Grid Grid.Row="2" Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />

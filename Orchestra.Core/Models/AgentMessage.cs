@@ -33,6 +33,15 @@ namespace Orchestra.Core.Models
 
         [JsonPropertyName("agent_profile")]
         public string? AgentProfile { get; set; }
+
+        [JsonPropertyName("task_id")]
+        public string? TaskId { get; set; }
+
+        [JsonPropertyName("allow_commands")]
+        public bool? AllowCommands { get; set; }
+
+        [JsonPropertyName("mode")]
+        public string? ChatMode { get; set; }
     }
 
     /// <summary>
@@ -85,6 +94,12 @@ namespace Orchestra.Core.Models
 
         [JsonPropertyName("model")]
         public string Model { get; set; } = string.Empty;
+
+        [JsonPropertyName("mode")]
+        public string Mode { get; set; } = "chat";
+
+        [JsonPropertyName("agentic_setup_confirmed")]
+        public bool AgenticSetupConfirmed { get; set; }
 
         [JsonPropertyName("created_at")]
         public string CreatedAt { get; set; } = string.Empty;

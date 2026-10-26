@@ -34,6 +34,10 @@ class ModelError(RuntimeError):
     pass
 
 
+class ModelCancelledError(ModelError):
+    pass
+
+
 def http_post_json(
     url: str,
     payload: dict[str, Any],
@@ -68,6 +72,8 @@ class ModelClient:
     def __init__(self, config: Config, logger: logging.Logger):
         self.cfg = config
         self.logger = logger
+        self.progress_callback: Callable[[int], None] | None = None
+        self.cancel_requested: Callable[[], bool] | None = None
 
     def chat(self, messages: list[dict[str, str]]) -> str:
         last_error: Optional[Exception] = None
@@ -82,6 +88,8 @@ class ModelClient:
                     raise ModelError(
                         f"Unknown provider: {self.cfg.provider}"
                     )
+            except ModelCancelledError:
+                raise
             except Exception as e:
                 last_error = e
                 self.logger.warning(
@@ -97,26 +105,58 @@ class ModelClient:
         payload = {
             "model": self.cfg.model,
             "messages": messages,
-            "stream": False,
+            "stream": True,
             "options": {
                 "temperature": self.cfg.temperature,
                 "num_predict": self.cfg.max_tokens,
             },
         }
-
-        result = http_post_json(
+        request = urllib.request.Request(
             self.cfg.endpoint,
-            payload,
-            self.cfg.request_timeout_sec,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
         )
-
+        parts: list[str] = []
+        emitted_chars = 0
+        total_chars = 0
         try:
-            return str(result["message"]["content"])
-        except KeyError as e:
-            raise ModelError(
-                f"Unexpected Ollama response: {result}"
-            ) from e
+            with urllib.request.urlopen(request, timeout=self.cfg.request_timeout_sec) as response:
+                for raw_line in response:
+                    if self.cancel_requested and self.cancel_requested():
+                        raise ModelCancelledError("Stopped by the user.")
+                    if not raw_line.strip():
+                        continue
+                    try:
+                        event = json.loads(raw_line.decode("utf-8"))
+                    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                        raise ModelError("Ollama returned an invalid streaming response.") from error
+                    if event.get("error"):
+                        raise ModelError(str(event["error"]))
+                    message = event.get("message") or {}
+                    piece = message.get("content", "") if isinstance(message, dict) else ""
+                    if piece:
+                        parts.append(str(piece))
+                        total_chars += len(str(piece))
+                        if self.progress_callback and total_chars - emitted_chars >= 400:
+                            self.progress_callback(max(1, total_chars // 4))
+                            emitted_chars = total_chars
+                    if event.get("done"):
+                        break
+        except urllib.error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            raise ModelError(f"HTTP {error.code}: {detail}") from error
+        except ModelError:
+            raise
+        except Exception as error:
+            raise ModelError(str(error)) from error
 
+        if not parts:
+            raise ModelError("Ollama returned no generated content.")
+        content = "".join(parts)
+        if self.progress_callback and len(content) > emitted_chars:
+            self.progress_callback(max(1, len(content) // 4))
+        return content
     def _openai_compatible(
         self,
         messages: list[dict[str, str]],
@@ -140,4 +180,10 @@ class ModelClient:
             raise ModelError(
                 f"Unexpected OpenAI-compatible response: {result}"
             ) from e
+
+
+
+
+
+
 

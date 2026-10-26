@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using Agent_MK_UI.Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +30,7 @@ namespace Agent_MK_UI
 
         private List<ChatSummary> _chats = new();
         private ChatSummary? _currentChat;
+        private string? _activeAgenticTaskId;
 
         private const long MaxScanFileBytes = 200 * 1024;
         private const long InlineFileContextBytes = 32 * 1024;
@@ -44,6 +47,7 @@ namespace Agent_MK_UI
 
         private DispatcherTimer? _thinkingTimer;
         private TextBlock? _thinkingStatusText;
+        private string _thinkingBaseText = "Working";
         private DispatcherTimer? _ollamaStatsTimer;
         private int _ollamaStatsRefreshing;
         private HashSet<string> _ignoredPaths = new();
@@ -110,6 +114,7 @@ namespace Agent_MK_UI
             this.Closed += MainWindow_Closed;
 
             UserInputBox.PreviewKeyDown += UserInputBox_KeyDown;
+            UpdateAgentModeUi();
         }
 
         // ------------------------------------------------------------
@@ -230,6 +235,57 @@ namespace Agent_MK_UI
             UserInputBox.Focus(FocusState.Programmatic);
         }
 
+        private bool IsAgenticTaskMode =>
+            string.Equals(_currentChat?.Mode, "agentic", StringComparison.OrdinalIgnoreCase);
+
+        private void UpdateAgentModeUi()
+        {
+            if (ChatModeBadge == null)
+                return;
+
+            bool agentic = IsAgenticTaskMode;
+            ChatModeBadge.Text = agentic ? "Agentic task" : "Chat";
+            ChooseTaskFolderButton.Visibility = agentic ? Visibility.Visible : Visibility.Collapsed;
+            AllowTaskCommandsCheckBox.Visibility = agentic ? Visibility.Visible : Visibility.Collapsed;
+            if (_activeAgenticTaskId == null)
+            {
+                SendButton.Content = agentic ? "Continue task" : "Send";
+                string workspace = string.IsNullOrWhiteSpace(_currentChat?.ProjectPath)
+                    ? "the private workspace for this chat"
+                    : _currentChat.ProjectPath!;
+                InputHintText.Text = agentic
+                    ? $"This conversation always runs as an agentic task. Files go in {workspace}. Review the interpreted task before it starts."
+                    : "This conversation always runs in chat mode. Drop text, script, or JSON files here.";
+            }
+        }
+
+        private async void ChooseTaskFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentChat == null || _orchestrator == null)
+                return;
+
+            var picker = new FolderPicker();
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            picker.FileTypeFilter.Add("*");
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder == null)
+                return;
+
+            try
+            {
+                _currentChat = await _orchestrator.SetChatProjectAsync(_currentChat.Id, folder.Path);
+                _ignoredPaths.Clear();
+                UpdateProjectActionButtons(true);
+                UpdateAgentModeUi();
+                await RefreshProjectPanelAsync();
+                await RefreshChatListAsync();
+            }
+            catch (AgentIpcException ex)
+            {
+                await ShowMessageDialogAsync(ex.Message, "Could not set task folder");
+            }
+        }
         // ------------------------------------------------------------
         // Chat list
         // ------------------------------------------------------------
@@ -319,6 +375,17 @@ namespace Agent_MK_UI
                     }
                 );
 
+                textPanel.Children.Add(
+                    new TextBlock
+                    {
+                        Text = chat.Mode.Equals("agentic", StringComparison.OrdinalIgnoreCase)
+                            ? "Agentic task"
+                            : "Chat",
+                        Foreground = GetThemeBrush("TextFillColorSecondaryBrush"),
+                        FontSize = 10,
+                    }
+                );
+
                 if (!string.IsNullOrEmpty(chat.ProjectPath))
                 {
                     textPanel.Children.Add(
@@ -390,13 +457,61 @@ namespace Agent_MK_UI
                 return;
             }
 
+            var chatTitleBox = new TextBox
+            {
+                Header = "Chat name",
+                PlaceholderText = "New chat",
+                Text = "",
+                MaxLength = 80,
+            };
+            var modePicker = new ComboBox
+            {
+                Header = "Conversation mode",
+                SelectedIndex = 0,
+                MinWidth = 320,
+            };
+            modePicker.Items.Add(new ComboBoxItem { Content = "Chat — questions and conversation", Tag = "chat" });
+            modePicker.Items.Add(new ComboBoxItem { Content = "Agentic task — create or edit project files", Tag = "agentic" });
+            var modeExplanation = new TextBlock
+            {
+                Text = "Chat answers messages without running a long task.",
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 8, 0, 0),
+            };
+            modePicker.SelectionChanged += (_, __) =>
+            {
+                modeExplanation.Text = modePicker.SelectedIndex == 1
+                    ? "Agentic task keeps this whole conversation in task mode. Each message is reviewed before the agent works in the selected workspace."
+                    : "Chat answers messages normally. Create a separate chat if you want an agent to work on files.";
+            };
+            var createContent = new StackPanel { Spacing = 12, MinWidth = 360 };
+            createContent.Children.Add(chatTitleBox);
+            createContent.Children.Add(modePicker);
+            createContent.Children.Add(modeExplanation);
+            var createDialog = new ContentDialog
+            {
+                Title = "Create a new conversation",
+                Content = createContent,
+                PrimaryButtonText = "Create chat",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.Content.XamlRoot,
+            };
+            if (await createDialog.ShowAsync() != ContentDialogResult.Primary)
+                return;
+
+            string chosenMode = modePicker.SelectedIndex == 1 ? "agentic" : "chat";
+            string chosenTitle = string.IsNullOrWhiteSpace(chatTitleBox.Text)
+                ? "New chat"
+                : chatTitleBox.Text.Trim();
+
             try
             {
-                // 1. Instantly create the chat using system defaults, bypassing the UI dialog.
                 var chat = await _orchestrator.CreateChatAsync(
-                    "New chat",
+                    chosenTitle,
                     null,
-                    _orchestrator.DefaultModel
+                    _orchestrator.DefaultModel,
+                    chosenMode
                 );
 
                 _currentChat = chat;
@@ -454,7 +569,10 @@ namespace Agent_MK_UI
 
         private async Task SelectChatAsync(ChatSummary chat)
         {
+            if (_activeAgenticTaskId != null && _currentChat?.Id != chat.Id)
+                return;
             _currentChat = chat;
+            UpdateAgentModeUi();
             _ignoredPaths.Clear();
             BuildChatListPanel();
 
@@ -917,6 +1035,7 @@ namespace Agent_MK_UI
                 );
                 _ignoredPaths.Clear();
                 UpdateProjectActionButtons(true);
+                UpdateAgentModeUi();
                 await RefreshProjectPanelAsync();
                 await RefreshChatListAsync();
             }
@@ -934,6 +1053,15 @@ namespace Agent_MK_UI
         {
             if (_currentChat == null || _orchestrator == null)
                 return;
+
+            if (_activeAgenticTaskId != null)
+            {
+                _orchestrator.CancelAgenticTask(_activeAgenticTaskId);
+                SendButton.IsEnabled = false;
+                if (_thinkingStatusText != null)
+                    _thinkingStatusText.Text = "Stop requested; waiting for the current model/tool step to finish…";
+                return;
+            }
 
             string promptText = UserInputBox.Text;
             if (string.IsNullOrWhiteSpace(promptText))
@@ -954,19 +1082,66 @@ namespace Agent_MK_UI
                     return;
             }
 
+            bool agentic = IsAgenticTaskMode;
+            if (agentic && !_currentChat.AgenticSetupConfirmed)
+            {
+                string? reviewedGoal;
+                bool previousSendEnabled = SendButton.IsEnabled;
+                string previousSendContent = SendButton.Content?.ToString() ?? "Start task";
+                SendButton.IsEnabled = false;
+                SendButton.Content = "Reviewing task…";
+                InputHintText.Text = "Checking the model’s interpretation. No project files will change until you confirm.";
+                try
+                {
+                    string reviewJson = await _orchestrator.PrepareAgenticTaskAsync(_currentChat.Id, promptText);
+                    reviewedGoal = await ShowAgenticTaskReviewAsync(promptText, reviewJson, null);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning($"Task preflight failed: {ex.Message}");
+                    reviewedGoal = await ShowAgenticTaskReviewAsync(promptText, null, ex.Message);
+                }
+                finally
+                {
+                    SendButton.IsEnabled = previousSendEnabled;
+                    SendButton.Content = previousSendContent;
+                    UpdateAgentModeUi();
+                }
+
+                if (string.IsNullOrWhiteSpace(reviewedGoal))
+                    return;
+                promptText = reviewedGoal;
+            }
+
             bool shouldAutoName = _currentChat.Title == "New chat";
+            string? taskId = agentic ? Guid.NewGuid().ToString("N") : null;
             UserInputBox.Text = string.Empty;
-            SendButton.IsEnabled = false;
+            SendButton.IsEnabled = true;
+            SendButton.Content = agentic ? "Stop task" : "Sending…";
+            if (agentic)
+            {
+                _activeAgenticTaskId = taskId;
+                ChooseTaskFolderButton.IsEnabled = false;
+                AllowTaskCommandsCheckBox.IsEnabled = false;
+                AttachProjectButton.IsEnabled = false;
+                RemoveProjectButton.IsEnabled = false;
+                RefreshProjectButton.IsEnabled = false;
+                ReviewProjectButton.IsEnabled = false;
+            }
+            else
+                SendButton.IsEnabled = false;
+            bool allowTaskCommands = agentic && AllowTaskCommandsCheckBox.IsChecked == true;
 
             AppendUserBubble(promptText);
             var thinkingBubble = AppendThinkingBubble();
 
             try
             {
-                string responseText = await _orchestrator.SendChatMessageAsync(
-                    _currentChat.Id,
-                    promptText
-                );
+                string responseText = agentic
+                    ? await _orchestrator.RunAgenticTaskAsync(_currentChat.Id, taskId!, promptText, allowTaskCommands)
+                    : await _orchestrator.SendChatMessageAsync(_currentChat.Id, promptText);
+                if (agentic)
+                    _currentChat.AgenticSetupConfirmed = true;
                 responseText = SanitizeAssistantResponse(responseText);
 
                 _logger?.LogInfo($"AI response received ({responseText.Length} display chars).");
@@ -1019,13 +1194,137 @@ namespace Agent_MK_UI
             }
             finally
             {
+                _activeAgenticTaskId = null;
                 StopThinkingAnimation();
+                UpdateAgentModeUi();
+                ChooseTaskFolderButton.IsEnabled = true;
+                AllowTaskCommandsCheckBox.IsEnabled = true;
+                AllowTaskCommandsCheckBox.IsChecked = false;
+                UpdateProjectActionButtons();
                 await Task.Delay(100);
                 ChatScrollViewer.UpdateLayout();
                 ChatScrollViewer.ChangeView(null, ChatScrollViewer.ScrollableHeight, null);
                 SendButton.IsEnabled = true;
                 UserInputBox.Focus(FocusState.Programmatic);
             }
+        }
+        private sealed class AgenticTaskPreflight
+        {
+            [JsonPropertyName("understood_goal")]
+            public string UnderstoodGoal { get; set; } = string.Empty;
+
+            [JsonPropertyName("deliverables")]
+            public List<string> Deliverables { get; set; } = new();
+
+            [JsonPropertyName("clarification_question")]
+            public string ClarificationQuestion { get; set; } = string.Empty;
+
+            [JsonPropertyName("requires_clarification")]
+            public bool RequiresClarification { get; set; }
+        }
+
+        private async Task<string?> ShowAgenticTaskReviewAsync(string originalPrompt, string? reviewJson, string? error)
+        {
+            AgenticTaskPreflight? review = null;
+            if (!string.IsNullOrWhiteSpace(reviewJson))
+            {
+                try
+                {
+                    review = JsonSerializer.Deserialize<AgenticTaskPreflight>(reviewJson);
+                }
+                catch (JsonException ex)
+                {
+                    _logger?.LogWarning($"Could not parse task preflight: {ex.Message}");
+                }
+            }
+
+            string interpretedGoal = string.IsNullOrWhiteSpace(review?.UnderstoodGoal)
+                ? originalPrompt
+                : review!.UnderstoodGoal.Trim();
+            var content = new StackPanel { Spacing = 10, MinWidth = 480, MaxWidth = 680 };
+            content.Children.Add(new TextBlock
+            {
+                Text = error == null
+                    ? "Review the AI’s understanding. Edit the task below if anything is wrong. The agent will not start until you confirm."
+                    : $"The AI could not verify its interpretation ({error}). Review or rewrite the task below before starting.",
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            if (review?.Deliverables is { Count: > 0 })
+            {
+                content.Children.Add(new TextBlock
+                {
+                    Text = "Expected deliverables: " + string.Join("; ", review.Deliverables),
+                    TextWrapping = TextWrapping.Wrap,
+                });
+            }
+
+            var goalBox = new TextBox
+            {
+                Header = "Task the agent will execute",
+                Text = interpretedGoal,
+                AcceptsReturn = true,
+                TextWrapping = TextWrapping.Wrap,
+                MinHeight = 110,
+                MaxHeight = 220,
+            };
+            ScrollViewer.SetVerticalScrollBarVisibility(goalBox, ScrollBarVisibility.Auto);
+            content.Children.Add(goalBox);
+
+            TextBox? clarificationBox = null;
+            bool hasQuestion = !string.IsNullOrWhiteSpace(review?.ClarificationQuestion);
+            bool needsClarification = review?.RequiresClarification == true && hasQuestion;
+            if (hasQuestion)
+            {
+                content.Children.Add(new TextBlock
+                {
+                    Text = (needsClarification
+                        ? "One essential detail is needed before work can start: "
+                        : "Optional preference — leave blank to use sensible defaults: ")
+                        + review!.ClarificationQuestion,
+                    TextWrapping = TextWrapping.Wrap,
+                });
+                if (needsClarification)
+                {
+                    clarificationBox = new TextBox
+                    {
+                        Header = "Your answer",
+                        AcceptsReturn = true,
+                        TextWrapping = TextWrapping.Wrap,
+                        MinHeight = 70,
+                        MaxHeight = 150,
+                    };
+                    content.Children.Add(clarificationBox);
+                }
+            }
+
+            var dialog = new ContentDialog
+            {
+                Title = "Review task before running",
+                Content = content,
+                PrimaryButtonText = "Start this task",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.Content.XamlRoot,
+            };
+            if (needsClarification)
+            {
+                dialog.PrimaryButtonClick += (_, args) =>
+                {
+                    if (string.IsNullOrWhiteSpace(clarificationBox?.Text))
+                    {
+                        args.Cancel = true;
+                        clarificationBox?.Focus(FocusState.Programmatic);
+                    }
+                };
+            }
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+                return null;
+            string finalGoal = goalBox.Text.Trim();
+            if (clarificationBox != null)
+                finalGoal += "\n\nUser clarification: " + clarificationBox.Text.Trim();
+            return finalGoal;
         }
 
         private static bool IsLargePrompt(string prompt)
@@ -1348,6 +1647,7 @@ namespace Agent_MK_UI
             };
 
             _thinkingStatusText = statusText;
+            _thinkingBaseText = "Working";
             int dotCount = 0;
             _thinkingTimer?.Stop();
             _thinkingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(450) };
@@ -1357,7 +1657,7 @@ namespace Agent_MK_UI
                     return;
 
                 dotCount = (dotCount + 1) % 4;
-                _thinkingStatusText.Text = "Working" + new string('.', dotCount);
+                _thinkingStatusText.Text = _thinkingBaseText + new string('.', dotCount);
             };
             _thinkingTimer.Start();
 
@@ -1374,8 +1674,7 @@ namespace Agent_MK_UI
                     return;
                 }
 
-                _thinkingTimer?.Stop();
-                _thinkingTimer = null;
+                _thinkingBaseText = message;
                 _thinkingStatusText.Text = message;
             });
         }
@@ -1385,6 +1684,7 @@ namespace Agent_MK_UI
             _thinkingTimer?.Stop();
             _thinkingTimer = null;
             _thinkingStatusText = null;
+            _thinkingBaseText = "Working";
         }
 
         // ------------------------------------------------------------
@@ -1779,5 +2079,9 @@ namespace Agent_MK_UI
         }
     }
 }
+
+
+
+
 
 

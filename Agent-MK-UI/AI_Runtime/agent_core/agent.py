@@ -9,6 +9,7 @@ import dataclasses
 import datetime as dt
 import difflib
 import hashlib
+import itertools
 import json
 import logging
 import os
@@ -85,6 +86,56 @@ class LocalAgent:
     @staticmethod
     def _tool_signature(name: str, args: dict[str, Any]) -> str:
         return name + ':' + json.dumps(args, ensure_ascii=False, sort_keys=True, default=str)
+
+    @staticmethod
+    def _website_contract_issues(files: dict[str, str], *, storefront: bool) -> list[str]:
+        html_sources = "\n".join(
+            content for path, content in files.items()
+            if path.casefold().endswith((".html", ".htm"))
+        )
+        if not html_sources.strip():
+            return ["an HTML entry page"]
+
+        visible_text = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", html_sources)
+        visible_text = re.sub(r"(?s)<!--.*?-->", " ", visible_text)
+        visible_text = re.sub(r"<[^>]+>", " ", visible_text)
+        visible_text = re.sub(r"\s+", " ", visible_text).strip()
+        issues: list[str] = []
+        if len(visible_text) < 180:
+            issues.append("meaningful page content (the current page is still placeholder-sized)")
+        if not re.search(r"(?i)<(header|nav|main|section|footer)\b", html_sources):
+            issues.append("a clear page structure with navigation and content sections")
+        combined = "\n".join(files.values())
+        if not re.search(r"(?i)name\s*=\s*['\"]viewport['\"]", html_sources) and not re.search(r"(?i)@media\b", combined):
+            issues.append("responsive layout for mobile screens")
+        if not any(path.casefold().endswith("index.html") for path in files):
+            issues.append("an index.html entry page that can be opened locally")
+
+        if storefront:
+            if not re.search(r"(?i)painting|canvas|oil|acrylic|product", combined):
+                issues.append("painting or art products in the catalog")
+            priced_items = re.findall(r"(?i)(?:[$€£]\s*\d|\b\d+\.\d{2}\b)", combined)
+            if len(priced_items) < 4:
+                issues.append("at least four sample products with prices")
+            if not re.search(r"(?i)cart", combined) or not re.search(r"(?i)add\s*to\s*cart|addToCart|add_to_cart", combined):
+                issues.append("a working add-to-cart interaction")
+            if not re.search(r"(?i)quantity|qty", combined) or not re.search(r"(?i)subtotal|total", combined):
+                issues.append("quantity controls and a calculated cart total")
+            if not re.search(r"(?i)checkout", combined):
+                issues.append("a checkout flow (a clearly labeled local demo is acceptable)")
+            if not re.search(r"(?i)addEventListener|on(click|change|submit)", combined):
+                issues.append("JavaScript event handling for the shop controls")
+            if not re.search(r"(?is)<form\b|createElement\(\s*['\"]form['\"]", combined):
+                issues.append("a real checkout/payment form, not only a thank-you message")
+            if not re.search(r"(?is)(?:type\s*=\s*['\"]email['\"]|name\s*=\s*['\"]email['\"])", combined):
+                issues.append("an email field in the checkout form")
+            if not re.search(r"(?i)(?:name\s*=\s*['\"](?:address|shipping-address)['\"]|autocomplete\s*=\s*['\"]street-address['\"])", combined):
+                issues.append("a delivery/address field in checkout")
+            if not re.search(r"(?i)type\s*=\s*['\"]submit['\"]|place order|complete order|pay now", combined):
+                issues.append("a clear order submission button")
+            if not re.search(r"(?i)demo.{0,30}payment|payment.{0,30}demo|no (?:real )?(?:payment|card)|not charged", combined):
+                issues.append("a clearly labeled demo payment notice that does not imply real money is charged")
+        return issues
 
     @staticmethod
     def _phase_for_tool(name: str) -> str:
@@ -208,11 +259,39 @@ class LocalAgent:
             return "Command completed successfully." if result.get("returncode") == 0 else "Command reported a problem; adjusting the next step…"
         return "Received the tool result; continuing…"
 
-    def run(self, user_prompt: str, progress_callback: Callable[[str], None] | None = None) -> str:
+    @staticmethod
+    def _repeated_action_loop(history: deque[str], repeat_count: int, max_pattern_length: int = 20) -> int | None:
+        items = list(history)
+        max_length = min(max_pattern_length, len(items) // max(1, repeat_count))
+        for length in range(1, max_length + 1):
+            span = length * repeat_count
+            tail = items[-span:]
+            pattern = tail[:length]
+            if all(tail[offset:offset + length] == pattern for offset in range(0, span, length)):
+                return length
+        return None
+
+    def run(
+        self,
+        user_prompt: str,
+        progress_callback: Callable[[str], None] | None = None,
+        *,
+        max_tool_steps_override: int | None = None,
+        stop_reason: Callable[[], str | None] | None = None,
+        persistent_context: str | None = None,
+        unbounded: bool = False,
+        loop_repeat_limit_override: int | None = None,
+        duplicate_tool_limit_override: int | None = None,
+        require_file_write_before_final: bool = False,
+        require_site_storefront: bool = False,
+    ) -> str:
         run_id = self.db.start_run(user_prompt)
         self.db.save_message("user", user_prompt)
 
         messages = self._base_messages(user_prompt)
+        if persistent_context and messages:
+            messages[0]["content"] += "\n\n" + persistent_context
+            messages = trim_messages(messages, self._effective_max_chars())
 
         def report(message: str) -> None:
             if progress_callback is not None:
@@ -221,24 +300,107 @@ class LocalAgent:
                 except Exception as callback_error:
                     self.logger.debug(f"Progress callback failed: {callback_error}")
 
+        def stop_run(reason: str) -> str:
+            report(reason)
+            reply = f"The task stopped: {reason}"
+            self.db.save_message("assistant", reply)
+            self.db.finish_run(run_id, "cancelled", final_reply=reply)
+            return reply
+
         try:
             report("Working on your request…")
-            max_tool_steps = self._effective_max_tool_steps()
+            max_tool_steps = max(self._effective_max_tool_steps(), max_tool_steps_override or 0)
+            duplicate_limit = duplicate_tool_limit_override if duplicate_tool_limit_override is not None else self.cfg.duplicate_tool_limit
+            loop_repeat_limit = max(2, loop_repeat_limit_override or 10)
+            recent_action_results: deque[str] = deque(maxlen=loop_repeat_limit * 20)
             duplicate_counts: dict[str, int] = {}
             stagnant_steps = 0
             last_phase = "UNDERSTAND"
             last_result_fingerprint: str | None = None
             invalid_tool_retries = 0
+            file_write_count = 0
+            plan_only_final_retries = 0
+            site_quality_retries = 0
+            task_files: dict[str, str] = {}
+            file_write_attempts: dict[str, int] = {}
+            if require_site_storefront:
+                # On a continuation, validate the real saved site, not only files
+                # written during this particular model run.
+                for existing_path in self.workspace.list_files(limit=300):
+                    normalized = existing_path.replace("\\", "/").strip("/").casefold()
+                    if normalized.startswith((".agent_tasks/", ".agent_backups/")):
+                        continue
+                    if not normalized.endswith((".html", ".htm", ".css", ".js")):
+                        continue
+                    try:
+                        task_files[normalized] = self.workspace.read_text(
+                            existing_path, max_chars=30_000
+                        )
+                    except Exception:
+                        continue
+                if any(path.endswith(("index.html", "index.htm")) for path in task_files):
+                    file_write_count = 1
 
-            for step in range(1, max_tool_steps + 1):
+            steps = itertools.count(1) if unbounded else range(1, max_tool_steps + 1)
+            for step in steps:
+                reason = stop_reason() if stop_reason is not None else None
+                if reason:
+                    return stop_run(reason)
                 self.logger.info(
-                    f"[agent step {step}/{max_tool_steps} policy={self._policy.name} phase={last_phase}]"
+                    f"[agent step {step} policy={self._policy.name} phase={last_phase}]"
                 )
 
+                report("Waiting for the local model to choose the next action…")
                 raw = self.model.chat(messages)
+                reason = stop_reason() if stop_reason is not None else None
+                if reason:
+                    return stop_run(reason)
                 action = parse_agent_action(raw, self.tools.tools.keys())
 
                 if action["type"] == "final":
+                    if require_file_write_before_final and file_write_count == 0:
+                        plan_only_final_retries += 1
+                        if plan_only_final_retries <= 3:
+                            report("The model returned a plan without creating files; requesting actual implementation…")
+                            messages.append({
+                                "role": "user",
+                                "content": (
+                                    "This is an execution task. Your previous answer was only a plan and did not create any deliverable. "
+                                    "Use write_file now to create the actual project files in the workspace. Do not repeat the plan. "
+                                    "If blocked by missing essential information, ask one specific question instead of presenting another plan."
+                                ),
+                            })
+                            messages = trim_messages(messages, self._effective_max_chars())
+                            continue
+                        reply = "I stopped because the model repeatedly returned plans without creating any project files. No deliverable files were written. Send a concrete implementation request or choose a model that can use tools reliably."
+                        self.db.save_message("assistant", reply)
+                        self.db.finish_run(run_id, "no_file_changes", final_reply=reply)
+                        return reply
+                    if require_site_storefront:
+                        missing_site_parts = self._website_contract_issues(task_files, storefront=True)
+                        if missing_site_parts:
+                            site_quality_retries += 1
+                            if site_quality_retries <= 1:
+                                report("Storefront check found gaps: " + "; ".join(missing_site_parts) + ". Requesting one focused repair…")
+                                messages.append({
+                                    "role": "user",
+                                    "content": (
+                                        "Do not finish yet. The saved website is missing required parts: "
+                                        + "; ".join(missing_site_parts)
+                                        + ". Update only the files needed to fix these specific gaps. Keep existing working content; do not rewrite the whole site or replace it with a generic heading. "
+                                        "Use sensible defaults and state only checks you actually ran. This is the final repair pass."
+                                    ),
+                                })
+                                messages = trim_messages(messages, self._effective_max_chars())
+                                continue
+                            reply = (
+                                "The agent wrote website files but they did not pass the basic storefront completeness check. "
+                                "Still missing: " + "; ".join(missing_site_parts)
+                                + ". The files remain in the workspace; the task was not reported complete."
+                            )
+                            self.db.save_message("assistant", reply)
+                            self.db.finish_run(run_id, "incomplete_site", final_reply=reply)
+                            return reply
                     report("Preparing response…")
                     reply = action["reply"].strip() or \
                         "I completed the task."
@@ -285,7 +447,7 @@ class LocalAgent:
                     signature = self._tool_signature(tool_name, tool_args)
                     duplicate_counts[signature] = duplicate_counts.get(signature, 0) + 1
 
-                    if duplicate_counts[signature] > self.cfg.duplicate_tool_limit:
+                    if duplicate_counts[signature] > duplicate_limit:
                         result = {
                             "ok": False,
                             "error": (
@@ -298,21 +460,61 @@ class LocalAgent:
                         last_phase = self._phase_for_tool(tool_name)
                         report(self._tool_progress_message(tool_name, tool_args))
                         self.logger.info(f"  → tool: {tool_name} phase={last_phase}")
-
-                        try:
-                            result = self.tools.call(
-                                tool_name,
-                                tool_args,
-                            )
-                        except Exception as e:
+                        target_path = str(tool_args.get("path", "")).replace("\\", "/").strip("/").casefold()
+                        write_count = file_write_attempts.get(target_path, 0)
+                        if tool_name == "write_file" and not target_path.startswith(".agent_tasks/") and write_count >= 3:
                             result = {
                                 "ok": False,
-                                "error": str(e),
-                                "traceback": traceback.format_exc(limit=3),
+                                "error": (
+                                    f"This task already replaced {target_path} three times. "
+                                    "Do not rewrite the whole file again; inspect the current version, "
+                                    "make progress on another missing requirement, or finish."
+                                ),
                             }
+                            self.logger.warning(f"Blocked repeated whole-file rewrite: {target_path}")
+                        else:
+                            try:
+                                result = self.tools.call(tool_name, tool_args)
+                                if result.get("ok") and tool_name == "write_file" and not target_path.startswith(".agent_tasks/"):
+                                    file_write_attempts[target_path] = write_count + 1
+                            except Exception as e:
+                                result = {
+                                    "ok": False,
+                                    "error": str(e),
+                                    "traceback": traceback.format_exc(limit=3),
+                                }
+                    written_path = str(tool_args.get("path", "")).replace("\\", "/").strip("/").casefold()
+                    if result.get("ok") and not written_path.startswith(".agent_tasks/"):
+                        if tool_name == "write_file" and isinstance(tool_args.get("content"), str):
+                            task_files[written_path] = tool_args["content"]
+                            file_write_count += 1
+                        elif tool_name == "read_file" and isinstance(result.get("content"), str):
+                            task_files[written_path] = result["content"]
 
                     result_text = self._compact_tool_result(result)
                     result_fingerprint = hashlib.sha256(result_text.encode("utf-8", errors="replace")).hexdigest()
+                    exact_result = json.dumps(result, ensure_ascii=False, sort_keys=True, default=str)
+                    exact_result_fingerprint = hashlib.sha256(exact_result.encode("utf-8", errors="replace")).hexdigest()
+                    # progress.md is app-managed and changes after each status update,
+                    # so hashing its full contents made metadata loops look unique.
+                    checkpoint_path = str(tool_args.get("path", "")).replace("\\", "/").strip("/").casefold()
+                    if tool_name in {"read_file", "write_file"} and checkpoint_path.startswith(".agent_tasks/"):
+                        task_folder = checkpoint_path[len(".agent_tasks/"):].split("/", 1)[0]
+                        checkpoint_signature = f"{tool_name}:.agent_tasks/{task_folder}"
+                        checkpoint_result = "application-managed checkpoint operation"
+                        exact_result_fingerprint = hashlib.sha256(checkpoint_result.encode("utf-8")).hexdigest()
+                    else:
+                        checkpoint_signature = signature
+                    cycle_fingerprint = hashlib.sha256((checkpoint_signature + ":" + exact_result_fingerprint).encode("utf-8", errors="replace")).hexdigest()
+                    recent_action_results.append(cycle_fingerprint)
+                    repeated_loop_length = self._repeated_action_loop(recent_action_results, loop_repeat_limit)
+                    if repeated_loop_length is not None:
+                        reason = f"The same {repeated_loop_length}-step tool/action-result loop repeated {loop_repeat_limit} times in a row. I stopped to prevent an infinite loop."
+                        report(reason)
+                        reply = reason + " Checkpoint files are in the task workspace."
+                        self.db.save_message("assistant", reply)
+                        self.db.finish_run(run_id, "loop_detected", final_reply=reply)
+                        return reply
                     if result_fingerprint == last_result_fingerprint:
                         stagnant_steps += 1
                     else:
@@ -389,16 +591,26 @@ class LocalAgent:
             raise
 
         except Exception as e:
+            cancellation_reason = stop_reason() if stop_reason is not None else None
+            if cancellation_reason:
+                return stop_run(cancellation_reason)
+
             error = f"{type(e).__name__}: {e}"
             self.logger.error(error)
             self.logger.debug(traceback.format_exc())
+            is_timeout = "timed out" in str(e).casefold() or "timeout" in str(e).casefold()
 
+            if is_timeout:
+                report("The local model timed out. Any files already written are preserved; the task can continue from them.")
             self.db.finish_run(
                 run_id,
-                "error",
+                "model_timeout" if is_timeout else "error",
                 error=error,
             )
-            reply = f"Agent failed safely: {error}"
+            reply = (
+                "The local model timed out before it could finish this step. Any files already written are still in the workspace; the task was not marked complete. Send a short follow-up in this Agentic conversation to continue from the saved project."
+                if is_timeout else f"Agent failed safely: {error}"
+            )
 
             # This reply IS what the user sees in the chat, so it has to be
             # saved here too -- otherwise this store's message count (used
@@ -485,6 +697,12 @@ class LocalAgent:
 # ============================================================
 # Tool construction
 # ============================================================
+
+
+
+
+
+
 
 
 

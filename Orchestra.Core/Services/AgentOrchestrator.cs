@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Orchestra.Core.Contracts;
 using Orchestra.Core.Models;
@@ -83,6 +84,49 @@ namespace Orchestra.Core.Services
             return response.ResponseText;
         }
 
+        public async Task<string> PrepareAgenticTaskAsync(int chatId, string prompt)
+        {
+            var response = await SendAsync(new AgentRequest
+            {
+                Action = "prepare_agentic_task",
+                ChatId = chatId,
+                Prompt = prompt,
+                AgentProfile = _stateStore.Load().AgentProfile,
+            });
+            return response.ResponseText;
+        }
+
+        public async Task<string> RunAgenticTaskAsync(int chatId, string taskId, string goal, bool allowCommands)
+        {
+            string cancelPath = GetTaskCancelPath(taskId);
+            if (File.Exists(cancelPath))
+                File.Delete(cancelPath);
+            var response = await SendAsync(new AgentRequest
+            {
+                Action = "agentic_task",
+                ChatId = chatId,
+                TaskId = taskId,
+                AllowCommands = allowCommands,
+                Prompt = goal,
+                AgentProfile = _stateStore.Load().AgentProfile,
+            });
+            return response.ResponseText;
+        }
+
+        public void CancelAgenticTask(string taskId)
+        {
+            string cancelPath = GetTaskCancelPath(taskId);
+            Directory.CreateDirectory(Path.GetDirectoryName(cancelPath)!);
+            File.WriteAllText(cancelPath, "stop");
+        }
+
+        private static string GetTaskCancelPath(string taskId)
+        {
+            if (!Guid.TryParseExact(taskId, "N", out _))
+                throw new ArgumentException("Invalid agentic task id.", nameof(taskId));
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return Path.Combine(localAppData, "AgentMK", "task_control", taskId + ".cancel");
+        }
         public async Task<List<ChatSummary>> ListChatsAsync()
         {
             var response = await SendAsync(new AgentRequest { Action = "list_chats" });
@@ -92,7 +136,8 @@ namespace Orchestra.Core.Services
         public async Task<ChatSummary> CreateChatAsync(
             string title,
             string? projectPath,
-            string? model = null
+            string? model = null,
+            string mode = "chat"
         )
         {
             var response = await SendAsync(
@@ -102,6 +147,7 @@ namespace Orchestra.Core.Services
                     Title = title,
                     ProjectPath = projectPath,
                     ModelName = model ?? DefaultModel,
+                    ChatMode = mode,
                 }
             );
 

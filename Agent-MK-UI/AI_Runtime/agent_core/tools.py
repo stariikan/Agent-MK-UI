@@ -12,6 +12,7 @@ import hashlib
 import json
 import logging
 import os
+import posixpath
 import re
 import shutil
 import sqlite3
@@ -228,6 +229,23 @@ def build_tools(
                 "error": "content must be a string",
             }
 
+        normalized_path = posixpath.normpath(path.replace("\\", "/").strip("/"))
+        if normalized_path.casefold().startswith(".agent_tasks/") and not re.fullmatch(r"(?i)\.agent_tasks/[^/]+/plan\.md", normalized_path):
+            return {
+                "ok": False,
+                "error": "The .agent_tasks directory is reserved for internal checkpoints. Save project deliverables in the workspace root or a named project folder such as storefront/, not under .agent_tasks/.",
+            }
+
+        if re.fullmatch(r"(?i)\.agent_tasks/[^/]+/plan\.md", normalized_path):
+            plan_items = re.findall(
+                r"(?m)^\s*(?:[-*]\s+\[[ xX]\]\s+|\d+[.)]\s+)\S.+$",
+                content,
+            )
+            if len(plan_items) < 4:
+                return {
+                    "ok": False,
+                    "error": "A task plan needs at least four concrete numbered or checkbox steps. A one-sentence summary is not a plan; include implementation and verification milestones.",
+                }
         result = workspace.atomic_write(
             path,
             content,
@@ -241,7 +259,7 @@ def build_tools(
         Tool(
             name="write_file",
             description=(
-                "Atomically create or replace one text/code file. "
+                "Atomically create or replace one text/code file. The internal .agent_tasks directory is reserved for checkpoint metadata; deliverables belong in the workspace. Task plan files need at least four concrete steps. "
                 "Existing files are backed up when enabled."
             ),
             schema={
@@ -372,6 +390,7 @@ def build_tools(
 # ============================================================
 # CLI
 # ============================================================
+
 
 
 
